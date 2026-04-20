@@ -33,7 +33,7 @@ export const StudentSidebar: MenuItem[] = [
   {
     heading: "Genel",
     children: [
-      { name: "Dashboard", icon: "tabler:layout-dashboard", id: uniqueId(), url: "/" },
+      { name: "Ana Sayfa", icon: "tabler:layout-dashboard", id: uniqueId(), url: "/panel" },
     ],
   },
   {

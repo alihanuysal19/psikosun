@@ -21,7 +21,7 @@ const AuthLogin = () => {
     setLoading(true);
     try {
       await signin(email, password);
-      router.push("/");
+      router.push("/panel");
     } catch (err: any) {
       setError("E-posta veya şifre hatalı. Lütfen tekrar deneyin.");
     } finally {

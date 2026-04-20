@@ -1,19 +1,17 @@
 
 "use client"
 import { Alert, Button, Label, TextInput } from "flowbite-react";
-import Link from "next/link";
 import React, { useContext, useState } from "react";
 import AuthContext from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { Icon } from "@iconify/react/dist/iconify.js";
 
-
 const AuthRegister = () => {
-
   const [email, setEmail] = useState("");
   const [userName, setuserName] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const router = useRouter();
   const { signup }: any = useContext(AuthContext);
@@ -21,82 +19,85 @@ const AuthRegister = () => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-
+    setLoading(true);
     try {
       await signup(email, password, userName);
       router.push("/auth/login");
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "Kayıt sırasında bir hata oluştu.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <>
-      {error ? (
-        <div className="mt-4">
+      {error && (
+        <div className="mb-4">
           <Alert
-            color={"lighterror"}
+            color="failure"
             icon={() => (
-              <Icon
-                icon="solar:info-circle-outline"
-                className="me-3"
-                height={20}
-              />
+              <Icon icon="solar:info-circle-outline" className="me-3" height={20} />
             )}
           >
             {error}
           </Alert>
         </div>
-      ) : (
-        ""
       )}
-      <form className="mt-6" onSubmit={handleRegister}>
+      <form onSubmit={handleRegister}>
         <div className="mb-4">
           <div className="mb-2 block">
-            <Label htmlFor="email" className="font-semibold">Name</Label>
+            <Label htmlFor="name">Ad Soyad</Label>
           </div>
           <TextInput
             id="name"
             type="text"
             sizing="md"
-            className="form-control"
+            placeholder="Adınız Soyadınız"
             value={userName}
             onChange={(e) => setuserName(e.target.value)}
-
+            required
           />
         </div>
         <div className="mb-4">
           <div className="mb-2 block">
-            <Label htmlFor="emadd" className="font-semibold" >Email Address</Label>
+            <Label htmlFor="email">E-posta Adresi</Label>
           </div>
           <TextInput
-            id="emadd"
-            type="text"
+            id="email"
+            type="email"
             sizing="md"
-            className="form-control"
+            placeholder="ornek@mail.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-
+            required
           />
         </div>
         <div className="mb-6">
           <div className="mb-2 block">
-            <Label htmlFor="userpwd" className="font-semibold">Password</Label>
+            <Label htmlFor="password">Şifre</Label>
           </div>
           <TextInput
-            id="userpwd"
+            id="password"
             type="password"
             sizing="md"
-            className="form-control"
+            placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-
+            required
           />
         </div>
-        <Button color={'primary'} type="submit" className="w-full rounded-md">Sign Up</Button>
+        <Button
+          color="primary"
+          type="submit"
+          disabled={loading}
+          className="bg-primary hover:bg-primaryemphasis text-white rounded-md w-full"
+        >
+          {loading ? "Kayıt yapılıyor..." : "Kayıt Ol"}
+        </Button>
       </form>
     </>
-  )
-}
+  );
+};
 
-export default AuthRegister
+export default AuthRegister;
