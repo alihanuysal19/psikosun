@@ -1,6 +1,5 @@
 "use client";
 import { createContext, useEffect, useReducer, ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
 import { supabase } from '@/app/guards/supabase/supabaseClient';
 
 interface UserState {
@@ -63,12 +62,10 @@ async function fetchOrCreateProfile(id: string, email: string, fullName: string)
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
-  const router = useRouter();
 
   const setUser = async (session: any) => {
     if (!session?.user) {
       dispatch({ type: 'AUTH_STATE_CHANGED', payload: { isAuthenticated: false, user: null } });
-      router.push('/auth/login');
       return;
     }
     const { id, email, user_metadata } = session.user;
