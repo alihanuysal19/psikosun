@@ -3,30 +3,34 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/app/guards/supabase/supabaseClient";
-import Spinner from "@/app/components/shared/spinner/Spinner";
 
 export default function AuthCallback() {
   const router = useRouter();
 
   useEffect(() => {
-    const hash = window.location.hash;
-    const params = new URLSearchParams(hash.replace("#", ""));
-    const type = params.get("type");
+    const handleAuth = async () => {
+      const { data, error } = await supabase.auth.getSession();
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        console.log("No session found");
-        router.push("/auth/login");
+      if (error) {
+        console.log(error);
         return;
       }
 
-      if (type === "recovery") {
+      const hash = window.location.hash;
+
+      if (hash.includes("type=recovery")) {
+        // 🔥 BURASI ÖNEMLİ
         router.push("/auth/reset-password");
-      } else {
+        return;
+      }
+
+      if (data.session) {
         router.push("/");
       }
-    });
+    };
+
+    handleAuth();
   }, [router]);
 
-  return <Spinner />;
+  return <p>Loading...</p>;
 }
