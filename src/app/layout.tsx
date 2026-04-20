@@ -12,9 +12,8 @@ import { AuthProvider } from "../app/context/AuthContext";
 const plus_jakarta_sans = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "NextKit - Supabase Prisma Orm",
-  description:
-    "NextKit is a backend template powered by supabase and Prisma orm",
+  title: "psikosun",
+  description: "psikosun — online eğitim platformu",
 };
 
 export default function RootLayout({

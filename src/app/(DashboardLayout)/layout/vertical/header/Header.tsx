@@ -76,17 +76,7 @@ const Header = () => {
 
           <div className="block">
             <div className="flex gap-0 items-center">
-            <Button
-            color={"primary"}
-            as={Link}
-            size={"md"}
-            href="https://www.wrappixel.com/templates/nextkit-free-admin-panel-with-supabase-mongodb/"
-            className="w-full rounded-md py-0"
-          >
-            Download Free
-          </Button>
-              {/* Profile Dropdown */}
-              <Profile  />
+              <Profile />
             </div>
           </div>
         </Navbar>
