@@ -1,8 +1,8 @@
 "use client";
 import { useContext } from "react";
 import AuthContext from "@/app/context/AuthContext";
-import StudentDashboard from "../components/dashboard/StudentDashboard";
-import TeacherDashboard from "../components/dashboard/TeacherDashboard";
+import StudentDashboard from "@/app/components/dashboard/StudentDashboard";
+import TeacherDashboard from "@/app/components/dashboard/TeacherDashboard";
 
 export default function DashboardPage() {
   const { user } = useContext(AuthContext);

@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 
 interface Lesson {
   id: number;
+  title: string;
   scheduled_at: string;
   status: string;
   platform_link: string | null;
@@ -118,9 +119,9 @@ export default function TeacherDashboard() {
                     <Icon icon="tabler:user" className="text-primary" width={16} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-dark dark:text-white">{lesson.student.full_name}</p>
-                    <p className="text-xs text-gray-400">
-                      {new Date(lesson.scheduled_at).toLocaleString("tr-TR", {
+                    <p className="text-sm font-medium text-dark dark:text-white truncate">{lesson.title}</p>
+                    <p className="text-xs text-gray-400 truncate">
+                      {lesson.student.full_name} · {new Date(lesson.scheduled_at).toLocaleString("tr-TR", {
                         day: "numeric", month: "long", hour: "2-digit", minute: "2-digit",
                       })}
                     </p>

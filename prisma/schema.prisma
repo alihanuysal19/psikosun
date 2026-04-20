@@ -20,24 +20,41 @@ enum LessonStatus {
   CANCELLED
 }
 
+enum EducationLevel {
+  ILKOKUL
+  ORTAOKUL
+  LISE
+  UNIVERSITE
+  MEZUN
+  DIGER
+}
+
 model Profile {
-  id                  String   @id
-  email               String   @unique
+  id                  String          @id
+  email               String          @unique
   full_name           String
-  role                Role     @default(STUDENT)
+  role                Role            @default(STUDENT)
   avatar_url          String?
+  phone               String?
+  parent_phone        String?
+  city                String?
+  district            String?
+  school              String?
+  education_level     EducationLevel?
   assigned_teacher_id String?
-  created_at          DateTime @default(now())
+  created_at          DateTime        @default(now())
 
   assigned_teacher Profile?  @relation("TeacherStudents", fields: [assigned_teacher_id], references: [id])
   my_students      Profile[] @relation("TeacherStudents")
 
-  student_lessons  Lesson[]          @relation("StudentLessons")
-  teacher_lessons  Lesson[]          @relation("TeacherLessons")
-  student_notes    Note[]            @relation("StudentNotes")
-  teacher_notes    Note[]            @relation("TeacherNotes")
-  user_packages    UserPackage[]
-  purchases        PurchaseHistory[]
+  student_lessons   Lesson[]          @relation("StudentLessons")
+  teacher_lessons   Lesson[]          @relation("TeacherLessons")
+  student_notes     Note[]            @relation("StudentNotes")
+  teacher_notes     Note[]            @relation("TeacherNotes")
+  user_packages     UserPackage[]
+  purchases         PurchaseHistory[]
+  sent_messages     Message[]         @relation("SentMessages")
+  received_messages Message[]         @relation("ReceivedMessages")
 }
 
 model Package {
@@ -62,9 +79,9 @@ model UserPackage {
   purchased_at DateTime  @default(now())
   expires_at   DateTime?
 
-  profile  Profile   @relation(fields: [user_id], references: [id])
-  package  Package   @relation(fields: [package_id], references: [id])
-  lessons  Lesson[]
+  profile Profile  @relation(fields: [user_id], references: [id])
+  package Package  @relation(fields: [package_id], references: [id])
+  lessons Lesson[]
 }
 
 model Lesson {
@@ -72,7 +89,10 @@ model Lesson {
   student_id      String
   teacher_id      String
   user_package_id Int?
+  title           String
+  description     String?
   scheduled_at    DateTime
+  ends_at         DateTime
   platform_link   String?
   status          LessonStatus @default(SCHEDULED)
   deducted        Boolean      @default(false)
@@ -82,6 +102,9 @@ model Lesson {
   teacher      Profile      @relation("TeacherLessons", fields: [teacher_id], references: [id])
   user_package UserPackage? @relation(fields: [user_package_id], references: [id])
   notes        Note[]
+
+  @@index([teacher_id, scheduled_at])
+  @@index([student_id, scheduled_at])
 }
 
 model Note {
@@ -93,9 +116,24 @@ model Note {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  student Profile  @relation("StudentNotes", fields: [student_id], references: [id])
-  teacher Profile  @relation("TeacherNotes", fields: [teacher_id], references: [id])
-  lesson  Lesson?  @relation(fields: [lesson_id], references: [id])
+  student Profile @relation("StudentNotes", fields: [student_id], references: [id])
+  teacher Profile @relation("TeacherNotes", fields: [teacher_id], references: [id])
+  lesson  Lesson? @relation(fields: [lesson_id], references: [id])
+}
+
+model Message {
+  id          Int      @id @default(autoincrement())
+  sender_id   String
+  receiver_id String
+  content     String
+  read_at     DateTime?
+  created_at  DateTime @default(now())
+
+  sender   Profile @relation("SentMessages", fields: [sender_id], references: [id])
+  receiver Profile @relation("ReceivedMessages", fields: [receiver_id], references: [id])
+
+  @@index([sender_id, receiver_id, created_at])
+  @@index([receiver_id, read_at])
 }
 
 model PurchaseHistory {

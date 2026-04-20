@@ -45,8 +45,9 @@ export const StudentSidebar: MenuItem[] = [
     ],
   },
   {
-    heading: "Notlar",
+    heading: "İletişim",
     children: [
+      { name: "Mesajlar", icon: "tabler:messages", id: uniqueId(), url: "/mesajlar" },
       { name: "Notlarım", icon: "tabler:notes", id: uniqueId(), url: "/notlarim" },
     ],
   },
@@ -76,6 +77,7 @@ export const TeacherSidebar: MenuItem[] = [
     heading: "İçerik",
     children: [
       { name: "Öğrenci Notları", icon: "tabler:notes", id: uniqueId(), url: "/ogretmen/notlar" },
+      { name: "Mesajlar", icon: "tabler:messages", id: uniqueId(), url: "/mesajlar" },
     ],
   },
   {

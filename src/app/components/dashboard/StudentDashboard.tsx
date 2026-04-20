@@ -14,6 +14,7 @@ interface UserPackage {
 
 interface Lesson {
   id: number;
+  title: string;
   scheduled_at: string;
   status: string;
   platform_link: string | null;
@@ -139,10 +140,10 @@ export default function StudentDashboard() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-dark dark:text-white truncate">
-                      {lesson.teacher.full_name}
+                      {lesson.title}
                     </p>
                     <p className="text-xs text-gray-400">
-                      {new Date(lesson.scheduled_at).toLocaleString("tr-TR", {
+                      {lesson.teacher.full_name} · {new Date(lesson.scheduled_at).toLocaleString("tr-TR", {
                         day: "numeric", month: "long", hour: "2-digit", minute: "2-digit",
                       })}
                     </p>

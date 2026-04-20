@@ -1,6 +1,18 @@
 import { prisma } from "@/utils/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
+const EDITABLE_FIELDS = [
+  "full_name",
+  "phone",
+  "parent_phone",
+  "city",
+  "district",
+  "school",
+  "education_level",
+  "avatar_url",
+  "assigned_teacher_id",
+] as const;
+
 export async function GET(req: NextRequest) {
   const userId = req.nextUrl.searchParams.get("id");
   if (!userId) return NextResponse.json({ error: "Kullanıcı ID gerekli" }, { status: 400 });
@@ -9,6 +21,7 @@ export async function GET(req: NextRequest) {
     const profile = await prisma.profile.findUnique({
       where: { id: userId },
       include: {
+        assigned_teacher: { select: { id: true, full_name: true, email: true } },
         user_packages: { include: { package: true }, orderBy: { purchased_at: "desc" } },
         purchases: { include: { package: true }, orderBy: { created_at: "desc" } },
       },
@@ -31,6 +44,42 @@ export async function POST(req: NextRequest) {
       where: { id },
       update: {},
       create: { id, email, full_name, role: role ?? "STUDENT" },
+    });
+    return NextResponse.json({ data: profile });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "Sunucu hatası" }, { status: 500 });
+  }
+}
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { id, ...rest } = body;
+    if (!id) return NextResponse.json({ error: "Kullanıcı ID gerekli" }, { status: 400 });
+
+    const data: Record<string, any> = {};
+    for (const key of EDITABLE_FIELDS) {
+      if (key in rest) data[key] = rest[key] === "" ? null : rest[key];
+    }
+    if (Object.keys(data).length === 0) {
+      return NextResponse.json({ error: "Güncellenecek alan yok" }, { status: 400 });
+    }
+
+    if (data.assigned_teacher_id) {
+      const teacher = await prisma.profile.findUnique({
+        where: { id: data.assigned_teacher_id },
+        select: { role: true },
+      });
+      if (!teacher || teacher.role !== "TEACHER") {
+        return NextResponse.json({ error: "Geçersiz öğretmen" }, { status: 400 });
+      }
+    }
+
+    const profile = await prisma.profile.update({
+      where: { id },
+      data,
+      include: { assigned_teacher: { select: { id: true, full_name: true } } },
     });
     return NextResponse.json({ data: profile });
   } catch (error) {
