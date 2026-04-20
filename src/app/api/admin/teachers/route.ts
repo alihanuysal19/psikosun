@@ -2,11 +2,13 @@ import { prisma } from "@/utils/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
+function getAdminClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
+}
 
 export async function GET() {
   try {
@@ -28,7 +30,7 @@ export async function POST(req: NextRequest) {
     if (!email || !full_name || !password)
       return NextResponse.json({ error: "Eksik alan" }, { status: 400 });
 
-    const { data, error } = await supabaseAdmin.auth.admin.createUser({
+    const { data, error } = await getAdminClient().auth.admin.createUser({
       email,
       password,
       user_metadata: { full_name },
