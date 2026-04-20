@@ -1,96 +1,86 @@
 "use client"
 
 import { Icon } from "@iconify/react/dist/iconify.js";
-import { Alert, Button, Checkbox, Label, TextInput } from "flowbite-react";
+import { Alert, Button, Label, TextInput } from "flowbite-react";
 import React, { useContext, useState } from "react";
 import { useRouter } from "next/navigation";
 import AuthContext from "@/app/context/AuthContext";
 
-
 const AuthLogin = () => {
-
-
-  const [email, setEmail] = useState<string>("admin@gmail.com");
-  const [password, setPassword] = useState<string>("123456");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
 
   const router = useRouter();
   const { signin } = useContext(AuthContext);
 
-
   const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
+    setError("");
+    setLoading(true);
     try {
       await signin(email, password);
       router.push("/");
     } catch (err: any) {
-      setError(err.message);
+      setError("E-posta veya şifre hatalı. Lütfen tekrar deneyin.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <>
-      {error ? (
-        <div className="mt-4">
+      {error && (
+        <div className="mb-4">
           <Alert
-            color={"lighterror"}
+            color="failure"
             icon={() => (
-              <Icon
-                icon="solar:info-circle-outline"
-                className="me-3"
-                height={20}
-              />
+              <Icon icon="solar:info-circle-outline" className="me-3" height={20} />
             )}
           >
             {error}
           </Alert>
         </div>
-      ) : (
-        ""
       )}
-      <form className="mt-2" onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit}>
         <div className="mb-4">
           <div className="mb-2 block">
-            <Label htmlFor="Email">Email</Label>
+            <Label htmlFor="email">E-posta</Label>
           </div>
           <TextInput
-            id="Email"
-            type="text"
+            id="email"
+            type="email"
             sizing="md"
+            placeholder="ornek@mail.com"
             value={email}
-            className={`form-control ${error !== "" ? 'border border-error rounded-md' : ''}`}
             onChange={(e) => setEmail(e.target.value)}
+            required
           />
         </div>
-        <div className="mb-4">
+        <div className="mb-6">
           <div className="mb-2 block">
-            <Label htmlFor="userpwd">Password</Label>
+            <Label htmlFor="password">Şifre</Label>
           </div>
           <TextInput
-            id="userpwd"
+            id="password"
             type="password"
             sizing="md"
-            className={`form-control ${error !== "" ? 'border border-error rounded-md' : ''}`}
+            placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            required
           />
         </div>
-        <div className="flex justify-between my-5">
-          <div className="flex items-center gap-2">
-            <Checkbox color="primary" id="accept" className="checkbox" />
-            <Label
-              htmlFor="accept"
-              className=" font-normal cursor-pointer"
-            >
-              Remeber this Device
-            </Label>
-          </div>
-        </div>
-        <Button color={"primary"} type="submit" className="bg-primary hover:bg-primaryemphasis text-white rounded-md w-full">
-          Sign in
+        <Button
+          color="primary"
+          type="submit"
+          disabled={loading}
+          className="bg-primary hover:bg-primaryemphasis text-white rounded-md w-full"
+        >
+          {loading ? "Giriş yapılıyor..." : "Giriş Yap"}
         </Button>
       </form>
-
     </>
   );
 };
