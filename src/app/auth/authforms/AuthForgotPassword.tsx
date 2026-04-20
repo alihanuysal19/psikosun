@@ -1,62 +1,78 @@
 "use client";
-
-import { Button, Label, TextInput } from "flowbite-react";
+import { Button, Label, TextInput, Alert } from "flowbite-react";
+import { Icon } from "@iconify/react/dist/iconify.js";
+import Link from "next/link";
 import React, { useState } from "react";
-import { supabase } from "@/app/guards/supabase/supabaseClient";
 
 const AuthForgotPassword = () => {
   const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleForgotPassword = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setMessage("");
     setError("");
-
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/callback`,
-    });
-
-    if (error) {
-      setError(error.message);
-    } else {
-      setMessage("Şifre sıfırlama bağlantısı e-posta adresine gönderildi.");
+    try {
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setSuccess(true);
+    } catch {
+      setError("Bir hata oluştu. E-posta adresinizi kontrol edin.");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
+  if (success) {
+    return (
+      <div className="text-center py-4">
+        <div className="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-3">
+          <Icon icon="tabler:mail-check" className="text-success" width={24} />
+        </div>
+        <p className="font-medium text-dark dark:text-white mb-1">E-posta gönderildi</p>
+        <p className="text-sm text-gray-500">Gelen kutunuzu kontrol edin. Bağlantı 1 saat geçerlidir.</p>
+        <Link href="/auth/login" className="text-primary text-sm font-medium mt-4 block hover:underline">Giriş sayfasına dön</Link>
+      </div>
+    );
+  }
+
   return (
-    <form className="mt-6" onSubmit={handleForgotPassword}>
+    <form className="mt-6" onSubmit={handleSubmit}>
+      {error && (
+        <div className="mb-4">
+          <Alert color="failure" icon={() => <Icon icon="solar:info-circle-outline" className="me-3" height={20} />}>
+            {error}
+          </Alert>
+        </div>
+      )}
       <div className="mb-4">
         <div className="mb-2 block">
-          <Label htmlFor="emadd">Email Address</Label>
+          <Label htmlFor="email">E-posta Adresi</Label>
         </div>
         <TextInput
-          id="emadd"
+          id="email"
           type="email"
           sizing="md"
-          className="form-control"
+          placeholder="ornek@mail.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          className="form-control"
         />
       </div>
-
-      <Button
-        type="submit"
-        color={"primary"}
-        className="w-full rounded-md"
-        disabled={loading}
-      >
-        {loading ? "Sending..." : "Forgot Password"}
+      <Button color="primary" type="submit" disabled={loading} className="w-full rounded-md bg-primary hover:bg-primaryemphasis text-white">
+        {loading ? "Gönderiliyor..." : "Şifremi Sıfırla"}
       </Button>
-
-      {message && <p className="mt-3 text-sm text-green-600">{message}</p>}
-      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+      <div className="text-center mt-4">
+        <Link href="/auth/login" className="text-sm text-gray-500 hover:text-primary">Giriş sayfasına dön</Link>
+      </div>
     </form>
   );
 };

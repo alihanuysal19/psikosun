@@ -1,46 +1,31 @@
+"use client";
+import { useContext } from "react";
+import AuthContext from "@/app/context/AuthContext";
+import StudentDashboard from "../components/dashboard/StudentDashboard";
+import TeacherDashboard from "../components/dashboard/TeacherDashboard";
 
-import React from "react";
-import SalesOverview from "../components/dashboard/SalesOverview";
-import { YearlyBreakup } from "../components/dashboard/YearlyBreakup";
-import { MonthlyEarning } from "../components/dashboard/MonthlyEarning";
-import { RecentTransaction } from "../components/dashboard/RecentTransaction";
-import { ProductPerformance} from "../components/dashboard/ProductPerformance";
-import { BestSeller } from "../components/dashboard/BestSeller";
-import { Footer } from "../components/dashboard/Footer";
-import TopCards from "../components/dashboard/TopCards";
+export default function DashboardPage() {
+  const { user } = useContext(AuthContext);
 
-const page = () => {
+  if (!user) return null;
+
   return (
-    <>
-     <div className="grid grid-cols-12 gap-6">
-                <div className="col-span-12">
-           <TopCards/>
-          </div>
-      <div className="lg:col-span-4 col-span-12">
-        <div className="grid grid-cols-12 gap-6">
-          <div className="col-span-12">
-          <YearlyBreakup/>
-          </div>
-          <div className="col-span-12">
-          <MonthlyEarning/>
-          </div>
-        </div>
+    <div>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-dark dark:text-white">
+          Merhaba, {user.displayName} 👋
+        </h1>
+        <p className="text-sm text-gray-500 mt-1">
+          {user.role === "TEACHER" ? "Öğretmen paneline hoş geldiniz." :
+           user.role === "ADMIN" ? "Yönetici paneline hoş geldiniz." :
+           "Bugün ne öğrenmek istersiniz?"}
+        </p>
       </div>
-      <div className="lg:col-span-8 col-span-12">
-      <SalesOverview/>
-      </div>
-      <div className="lg:col-span-12 col-span-12 flex">
-        <ProductPerformance/>
-      </div>
-      <div className="col-span-12">
-        <BestSeller/>
-      </div>
-      <div className="col-span-12">
-      <Footer/>
-      </div>
-     </div>
-    </>
-  );
-};
 
-export default page;
+      {user.role === "TEACHER" || user.role === "ADMIN"
+        ? <TeacherDashboard />
+        : <StudentDashboard />
+      }
+    </div>
+  );
+}

@@ -1,23 +1,110 @@
-
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
-model product {
-  id           Int   @id @default(autoincrement())
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+enum LessonStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+model Profile {
+  id                  String   @id
+  email               String   @unique
+  full_name           String
+  role                Role     @default(STUDENT)
+  avatar_url          String?
+  assigned_teacher_id String?
+  created_at          DateTime @default(now())
+
+  assigned_teacher Profile?  @relation("TeacherStudents", fields: [assigned_teacher_id], references: [id])
+  my_students      Profile[] @relation("TeacherStudents")
+
+  student_lessons  Lesson[]          @relation("StudentLessons")
+  teacher_lessons  Lesson[]          @relation("TeacherLessons")
+  student_notes    Note[]            @relation("StudentNotes")
+  teacher_notes    Note[]            @relation("TeacherNotes")
+  user_packages    UserPackage[]
+  purchases        PurchaseHistory[]
+}
+
+model Package {
+  id           Int      @id @default(autoincrement())
   name         String
-  customer     String
-  quantity     String
-  status       String
-  price        String
-  imageUrl     String
-  createDate   DateTime @default(now())
-  updateDate   DateTime @updatedAt
+  description  String?
+  lesson_count Int
+  price        Decimal  @db.Decimal(10, 2)
+  is_active    Boolean  @default(true)
+  created_at   DateTime @default(now())
+
+  user_packages UserPackage[]
+  purchases     PurchaseHistory[]
+}
+
+model UserPackage {
+  id           Int       @id @default(autoincrement())
+  user_id      String
+  package_id   Int
+  remaining    Int
+  total        Int
+  purchased_at DateTime  @default(now())
+  expires_at   DateTime?
+
+  profile  Profile   @relation(fields: [user_id], references: [id])
+  package  Package   @relation(fields: [package_id], references: [id])
+  lessons  Lesson[]
+}
+
+model Lesson {
+  id              Int          @id @default(autoincrement())
+  student_id      String
+  teacher_id      String
+  user_package_id Int?
+  scheduled_at    DateTime
+  platform_link   String?
+  status          LessonStatus @default(SCHEDULED)
+  deducted        Boolean      @default(false)
+  created_at      DateTime     @default(now())
+
+  student      Profile      @relation("StudentLessons", fields: [student_id], references: [id])
+  teacher      Profile      @relation("TeacherLessons", fields: [teacher_id], references: [id])
+  user_package UserPackage? @relation(fields: [user_package_id], references: [id])
+  notes        Note[]
+}
+
+model Note {
+  id         Int      @id @default(autoincrement())
+  student_id String
+  teacher_id String
+  lesson_id  Int?
+  content    String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  student Profile  @relation("StudentNotes", fields: [student_id], references: [id])
+  teacher Profile  @relation("TeacherNotes", fields: [teacher_id], references: [id])
+  lesson  Lesson?  @relation(fields: [lesson_id], references: [id])
+}
+
+model PurchaseHistory {
+  id         Int      @id @default(autoincrement())
+  user_id    String
+  package_id Int
+  amount     Decimal  @db.Decimal(10, 2)
+  created_at DateTime @default(now())
+
+  profile Profile @relation(fields: [user_id], references: [id])
+  package Package @relation(fields: [package_id], references: [id])
 }

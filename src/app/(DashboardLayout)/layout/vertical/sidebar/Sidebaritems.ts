@@ -6,10 +6,10 @@ export interface ChildItem {
   item?: any;
   url?: any;
   color?: string;
-  disabled?:boolean,
-  subtitle?:string,
-  badge?:boolean,
-  badgeType?:string,
+  disabled?: boolean;
+  subtitle?: string;
+  badge?: boolean;
+  badgeType?: string;
 }
 
 export interface MenuItem {
@@ -21,76 +21,98 @@ export interface MenuItem {
   items?: MenuItem[];
   children?: ChildItem[];
   url?: any;
-  disabled?:boolean,
-  subtitle?:string,
-  badgeType?:string,
-  badge?:boolean,
+  disabled?: boolean;
+  subtitle?: string;
+  badgeType?: string;
+  badge?: boolean;
 }
-
 
 import { uniqueId } from "lodash";
 
-const SidebarContent: MenuItem[] = [
+export const StudentSidebar: MenuItem[] = [
   {
-    heading: "Home",
+    heading: "Genel",
     children: [
-      {
-        name: "Dashboard",
-        icon: 'tabler:aperture',
-        id: uniqueId(),
-        url: "/",
-      },
-
+      { name: "Dashboard", icon: "tabler:layout-dashboard", id: uniqueId(), url: "/" },
     ],
   },
   {
-    heading: "Utilities",
+    heading: "Eğitimim",
     children: [
-      {
-        name: "Typography",
-        icon: 'tabler:a-b-2',
-        id: uniqueId(),
-        url: "/utilities/typography",
-      },
-      {
-        name: "Order Table",
-        icon: 'tabler:table',
-        id: uniqueId(),
-        url: "/utilities/table",
-      },
-      {
-        name: "Form",
-        icon: 'tabler:brand-terraform',
-        id: uniqueId(),
-        url: "/utilities/form",
-      },
+      { name: "Derslerim", icon: "tabler:video", id: uniqueId(), url: "/derslerim" },
+      { name: "Paketim", icon: "tabler:package", id: uniqueId(), url: "/paketim" },
+      { name: "Satın Alma Geçmişi", icon: "tabler:receipt", id: uniqueId(), url: "/satin-alma-gecmisi" },
     ],
   },
   {
-    heading: "Extra",
+    heading: "Notlar",
     children: [
-            {
-        name: "Profile",
-        icon: 'tabler:user-circle',
-        id: uniqueId(),
-        url: "/user-profile",
-      },
-      {
-        name: "Icons",
-        icon: 'tabler:mood-smile',
-        id: uniqueId(),
-        url: "/icons/tabler",
-      },
-      {
-        name: "Sample Page",
-        icon: 'tabler:aperture',
-        id: uniqueId(),
-        url: "/sample-page",
-      },
+      { name: "Notlarım", icon: "tabler:notes", id: uniqueId(), url: "/notlarim" },
     ],
   },
-
-
+  {
+    heading: "Hesap",
+    children: [
+      { name: "Profilim", icon: "tabler:user-circle", id: uniqueId(), url: "/user-profile" },
+    ],
+  },
 ];
 
+export const TeacherSidebar: MenuItem[] = [
+  {
+    heading: "Genel",
+    children: [
+      { name: "Dashboard", icon: "tabler:layout-dashboard", id: uniqueId(), url: "/" },
+    ],
+  },
+  {
+    heading: "Öğrenciler",
+    children: [
+      { name: "Öğrenci Listesi", icon: "tabler:users", id: uniqueId(), url: "/ogretmen/ogrenciler" },
+      { name: "Ders Yönetimi", icon: "tabler:calendar-event", id: uniqueId(), url: "/ogretmen/dersler" },
+    ],
+  },
+  {
+    heading: "İçerik",
+    children: [
+      { name: "Öğrenci Notları", icon: "tabler:notes", id: uniqueId(), url: "/ogretmen/notlar" },
+    ],
+  },
+  {
+    heading: "Hesap",
+    children: [
+      { name: "Profilim", icon: "tabler:user-circle", id: uniqueId(), url: "/user-profile" },
+    ],
+  },
+];
+
+export const AdminSidebar: MenuItem[] = [
+  {
+    heading: "Genel",
+    children: [
+      { name: "Dashboard", icon: "tabler:layout-dashboard", id: uniqueId(), url: "/" },
+    ],
+  },
+  {
+    heading: "Kullanıcılar",
+    children: [
+      { name: "Öğrenciler", icon: "tabler:users", id: uniqueId(), url: "/admin/ogrenciler" },
+      { name: "Öğretmenler", icon: "tabler:school", id: uniqueId(), url: "/admin/ogretmenler" },
+    ],
+  },
+  {
+    heading: "Paketler",
+    children: [
+      { name: "Paket Yönetimi", icon: "tabler:package", id: uniqueId(), url: "/admin/paketler" },
+    ],
+  },
+  {
+    heading: "Hesap",
+    children: [
+      { name: "Profilim", icon: "tabler:user-circle", id: uniqueId(), url: "/user-profile" },
+    ],
+  },
+];
+
+const SidebarContent: MenuItem[] = StudentSidebar;
 export default SidebarContent;

@@ -1,179 +1,125 @@
 "use client";
 import { createContext, useEffect, useReducer, ReactNode } from 'react';
-import { useRouter } from 'next/navigation'; 
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/app/guards/supabase/supabaseClient';
 
+interface UserState {
+  id: string;
+  email: string;
+  displayName: string;
+  avatar?: string;
+  role: 'STUDENT' | 'TEACHER' | 'ADMIN' | null;
+}
+
 interface InitialStateType {
-    isAuthenticated: boolean;
-    isInitialized: boolean;
-    user: any | null;
-    platform: 'Supabase' | null;
+  isAuthenticated: boolean;
+  isInitialized: boolean;
+  user: UserState | null;
 }
 
 const initialState: InitialStateType = {
-    isAuthenticated: false,
-    isInitialized: false,
-    user: null,
-    platform: 'Supabase',
+  isAuthenticated: false,
+  isInitialized: false,
+  user: null,
 };
 
 const reducer = (state: InitialStateType, action: any) => {
-    switch (action.type) {
-        case 'AUTH_STATE_CHANGED':
-            return { ...state, ...action.payload, isInitialized: true };
-        case 'SET_PLATFORM':
-            return { ...state, platform: action.payload };
-        default:
-            return state;
-    }
+  switch (action.type) {
+    case 'AUTH_STATE_CHANGED':
+      return { ...state, ...action.payload, isInitialized: true };
+    default:
+      return state;
+  }
 };
 
 const AuthContext = createContext<any | null>({
-    ...initialState,
-    signup: () => Promise.resolve(),
-    signin: () => Promise.resolve(),
-    logout: () => Promise.resolve(),
-    setPlatform: () => {},
-    loginWithProvider: () => Promise.resolve(),
-    loginWithSupabase: () => Promise.resolve(),
+  ...initialState,
+  signup: () => Promise.resolve(),
+  signin: () => Promise.resolve(),
+  logout: () => Promise.resolve(),
 });
 
+async function fetchOrCreateProfile(id: string, email: string, fullName: string) {
+  try {
+    const res = await fetch(`/api/profile?id=${id}`);
+    if (res.ok) {
+      const { data } = await res.json();
+      return data;
+    }
+    const createRes = await fetch('/api/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, email, full_name: fullName }),
+    });
+    if (createRes.ok) {
+      const { data } = await createRes.json();
+      return data;
+    }
+  } catch (e) {
+    console.error('Profil yüklenemedi', e);
+  }
+  return null;
+}
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    const [state, dispatch] = useReducer(reducer, initialState);
-    const router = useRouter(); 
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const router = useRouter();
 
-    const setPlatform = (platform: 'Supabase') => {
-        dispatch({ type: 'SET_PLATFORM', payload: platform });
-    };
+  const setUser = async (session: any) => {
+    if (!session?.user) {
+      dispatch({ type: 'AUTH_STATE_CHANGED', payload: { isAuthenticated: false, user: null } });
+      router.push('/auth/login');
+      return;
+    }
+    const { id, email, user_metadata } = session.user;
+    const fullName = user_metadata?.full_name || email;
+    const profile = await fetchOrCreateProfile(id, email, fullName);
+    dispatch({
+      type: 'AUTH_STATE_CHANGED',
+      payload: {
+        isAuthenticated: true,
+        user: {
+          id,
+          email,
+          displayName: profile?.full_name || fullName,
+          avatar: profile?.avatar_url || user_metadata?.avatar || '',
+          role: profile?.role || 'STUDENT',
+        },
+      },
+    });
+  };
 
-    useEffect(() => {
-        if (state.platform === 'Supabase') {
-            const restoreSession = async () => {
-                const { data: { session } } = await supabase.auth.getSession();
-                if (session?.user) {
-                    const fullName = session.user.user_metadata?.full_name || session.user.email;
-                    dispatch({
-                        type: 'AUTH_STATE_CHANGED',
-                        payload: {
-                            isAuthenticated: true,
-                            user: {
-                                id: session.user.id,
-                                email: session.user.email,
-                                displayName: fullName,
-                            },
-                            platform: 'Supabase',
-                        },
-                    });
-                } else {
-                    dispatch({
-                        type: 'AUTH_STATE_CHANGED',
-                        payload: { isAuthenticated: false, user: null, platform: 'Supabase' },
-                    });
-                    router.push('/auth/login');
-                }
-            };
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => setUser(session));
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session);
+    });
+    return () => authListener?.subscription?.unsubscribe();
+  }, []);
 
-            restoreSession();
+  const signup = async (email: string, password: string, userName: string) => {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: userName } },
+    });
+    if (error) throw new Error(error.message);
+  };
 
-            const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-                if (session?.user) {
-                    const fullName = session.user.user_metadata?.full_name || session.user.email;
-                    dispatch({
-                        type: 'AUTH_STATE_CHANGED',
-                        payload: {
-                            isAuthenticated: true,
-                            user: {
-                                id: session.user.id,
-                                avatar: session.user.user_metadata?.avatar || "",
-                                email: session.user.email,
-                                displayName: fullName,
-                            },
-                            platform: 'Supabase',
-                        },
-                    });
-                } else {
-                    dispatch({
-                        type: 'AUTH_STATE_CHANGED',
-                        payload: { isAuthenticated: false, user: null, platform: 'Supabase' },
-                    });
-                    router.push('/auth/login');
-                }
-            });
+  const signin = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw new Error(error.message);
+  };
 
-            return () => {
-                authListener?.subscription?.unsubscribe();
-            };
-        }
-    }, [state.platform, router]);
+  const logout = async () => {
+    await supabase.auth.signOut();
+  };
 
-    const loginWithProvider = async (provider: 'google' | 'github') => {
-        if (state.platform === 'Supabase') {
-            return supabase.auth.signInWithOAuth({
-                provider,
-                options: {
-                    redirectTo: `${window.location.origin}/auth/callback`,
-                },
-            });
-        }
-    };
-
-    const signup = async (email: string, password: string, userName: string) => {
-        if (state.platform === 'Supabase') {
-            try {
-                const { user, error }: any = await supabase.auth.signUp({
-                    email,
-                    password,
-                    options: {
-                        data: { full_name: userName },
-                    },
-                });
-
-                if (error) throw error;
-
-                console.log('User registered successfully, confirmation email sent');
-            } catch (error: any) {
-                console.error('Error signing up with Supabase:', error);
-                throw new Error(error.message);
-            }
-        }
-        return null;
-    };
-
-    const signin = async (email: string, password: string) => {
-        if (state.platform === 'Supabase') {
-            try {
-                const { error } = await supabase.auth.signInWithPassword({
-                    email,
-                    password,
-                });
-                if (error) throw error;
-            } catch (error: any) {
-                throw new Error(error.message);
-            }
-        }
-        return null;
-    };
-
-    const logout = async () => {
-        if (state.platform === 'Supabase') {
-            await supabase.auth.signOut();
-        }
-    };
-
-    return (
-        <AuthContext.Provider
-            value={{
-                ...state,
-                setPlatform,
-                loginWithProvider,
-                signup,
-                signin,
-                logout,
-            }}
-        >
-            {children}
-        </AuthContext.Provider>
-    );
+  return (
+    <AuthContext.Provider value={{ ...state, signup, signin, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export default AuthContext;
