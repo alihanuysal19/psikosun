@@ -206,6 +206,9 @@ function updateCarousel() {
       spacing3 = 650;
     }
 
+    // Mark center item — CSS mobile override tek bu kartı gösterecek
+    item.classList.toggle("is-active", absOffset === 0);
+
     if (absOffset === 0) {
       // Center item
       item.style.transform = "translate(-50%, -50%) translateZ(0) scale(1)";
