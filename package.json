@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "postbuild": "node -e \"require('fs').mkdirSync('tmp',{recursive:true});require('fs').writeFileSync('tmp/restart.txt', new Date().toISOString())\"",
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate && flowbite-react patch"
