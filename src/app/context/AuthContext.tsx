@@ -38,6 +38,25 @@ const AuthContext = createContext<any | null>({
   logout: () => Promise.resolve(),
 });
 
+function translateAuthError(msg: string): string {
+  const m = msg.toLowerCase();
+  if (m.includes("user already registered") || m.includes("already registered"))
+    return "Bu e-posta ile zaten kayıtlı bir hesap var.";
+  if (m.includes("invalid login credentials"))
+    return "E-posta veya şifre hatalı.";
+  if (m.includes("email not confirmed"))
+    return "E-postanız henüz onaylanmadı. Gelen kutunuzdaki onay bağlantısına tıklayın.";
+  if (m.includes("password should be at least") || m.includes("weak password"))
+    return "Şifre en az 6 karakter olmalı.";
+  if (m.includes("unable to validate email") || m.includes("invalid email"))
+    return "Geçersiz e-posta adresi.";
+  if (m.includes("rate limit") || m.includes("too many"))
+    return "Çok fazla deneme yapıldı. Lütfen birkaç dakika bekleyin.";
+  if (m.includes("sending confirmation email") || m.includes("smtp"))
+    return "Doğrulama e-postası gönderilemedi. Lütfen yöneticiyle iletişime geçin.";
+  return msg;
+}
+
 async function fetchOrCreateProfile(id: string, email: string, fullName: string) {
   try {
     const res = await fetch(`/api/profile?id=${id}`);
@@ -105,17 +124,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signup = async (email: string, password: string, userName: string) => {
-    const { error } = await supabase.auth.signUp({
+    const redirectTo =
+      typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : undefined;
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: userName } },
+      options: { data: { full_name: userName }, emailRedirectTo: redirectTo },
     });
-    if (error) throw new Error(error.message);
+    if (error) throw new Error(translateAuthError(error.message));
+    return { needsEmailConfirmation: !data.session, user: data.user };
   };
 
   const signin = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw new Error(error.message);
+    if (error) throw new Error(translateAuthError(error.message));
   };
 
   const logout = async () => {
