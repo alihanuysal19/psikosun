@@ -72,8 +72,13 @@ const MobileSidebar = () => {
 
         <div className="px-5 pb-5 mt-auto">
           <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800">
-            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-              <Icon icon="tabler:user" className="text-primary" width={16} />
+            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 overflow-hidden">
+              {user?.avatar ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={user.avatar} alt={user.displayName ?? "avatar"} className="w-full h-full object-cover" />
+              ) : (
+                <Icon icon="tabler:user" className="text-primary" width={16} />
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold text-dark dark:text-white truncate">{user?.displayName}</p>

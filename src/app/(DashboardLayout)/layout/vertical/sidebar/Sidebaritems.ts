@@ -109,6 +109,12 @@ export const AdminSidebar: MenuItem[] = [
     ],
   },
   {
+    heading: "İletişim",
+    children: [
+      { name: "Mesajlar", icon: "tabler:messages", id: uniqueId(), url: "/mesajlar" },
+    ],
+  },
+  {
     heading: "Hesap",
     children: [
       { name: "Profilim", icon: "tabler:user-circle", id: uniqueId(), url: "/user-profile" },

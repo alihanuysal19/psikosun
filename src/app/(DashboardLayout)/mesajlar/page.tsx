@@ -77,23 +77,40 @@ export default function MesajlarPage() {
     const iv = setInterval(() => {
       if (activePartner) loadMessages(activePartner.id);
       loadConversations();
-    }, 8000);
+    }, 4000);
     return () => clearInterval(iv);
   }, [activePartner?.id, user?.id]);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || !activePartner || !user?.id) return;
+    const text = input.trim();
+    if (!text || !activePartner || !user?.id) return;
     setSending(true);
+
+    // Optimistic append
+    const tempId = -Date.now();
+    const tempMsg: Message = {
+      id: tempId,
+      sender_id: user.id,
+      receiver_id: activePartner.id,
+      content: text,
+      created_at: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, tempMsg]);
+    setInput("");
+
     try {
       await axios.post("/api/messages", {
         sender_id: user.id,
         receiver_id: activePartner.id,
-        content: input.trim(),
+        content: text,
       });
-      setInput("");
       await loadMessages(activePartner.id);
       loadConversations();
+    } catch (err: any) {
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+      setInput(text);
+      alert(err.response?.data?.error ?? "Mesaj gönderilemedi");
     } finally {
       setSending(false);
     }
