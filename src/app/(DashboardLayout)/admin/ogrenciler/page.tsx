@@ -1,8 +1,9 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { Icon } from "@iconify/react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import AuthContext from "@/app/context/AuthContext";
 
 interface UserPackage {
   id: number;
@@ -48,7 +49,27 @@ const educationLabels: Record<string, string> = {
   DIGER: "Diğer",
 };
 
+const EDUCATION_OPTIONS: [string, string][] = [
+  ["ILKOKUL", "İlkokul"],
+  ["ORTAOKUL", "Ortaokul"],
+  ["LISE", "Lise"],
+  ["UNIVERSITE", "Üniversite"],
+  ["MEZUN", "Mezun"],
+  ["DIGER", "Diğer"],
+];
+
+const emptyNewStudent = {
+  email: "",
+  full_name: "",
+  phone: "",
+  city: "",
+  education_level: "",
+  assigned_teacher_id: "",
+  password: "",
+};
+
 export default function AdminOgrencilerPage() {
+  const { user } = useContext(AuthContext) as any;
   const [students, setStudents] = useState<Student[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [packages, setPackages] = useState<Package[]>([]);
@@ -57,6 +78,45 @@ export default function AdminOgrencilerPage() {
   const [filterTeacher, setFilterTeacher] = useState<string>("ALL");
   const [savingId, setSavingId] = useState<string | null>(null);
   const [packageModalStudent, setPackageModalStudent] = useState<Student | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [createForm, setCreateForm] = useState(emptyNewStudent);
+  const [creating, setCreating] = useState(false);
+  const [createdInfo, setCreatedInfo] = useState<{ email: string; password: string } | null>(null);
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user?.id) return;
+    const email = createForm.email.trim();
+    const full_name = createForm.full_name.trim();
+    if (full_name.length < 2) return toast.error("Ad soyad girin.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+      return toast.error("Geçerli bir e-posta girin.");
+    if (createForm.password && createForm.password.length < 6)
+      return toast.error("Şifre en az 6 karakter olmalı.");
+
+    setCreating(true);
+    try {
+      const res = await axios.post("/api/users/create-student", {
+        caller_id: user.id,
+        email,
+        full_name,
+        phone: createForm.phone.trim() || undefined,
+        city: createForm.city.trim() || undefined,
+        education_level: createForm.education_level || undefined,
+        assigned_teacher_id: createForm.assigned_teacher_id || undefined,
+        password: createForm.password || undefined,
+      });
+      const tempPw = res.data.data.temp_password as string;
+      setCreatedInfo({ email, password: tempPw });
+      setCreateForm(emptyNewStudent);
+      toast.success("Öğrenci oluşturuldu.");
+      load();
+    } catch (err: any) {
+      toast.error(err.response?.data?.error ?? "Oluşturulamadı.");
+    } finally {
+      setCreating(false);
+    }
+  };
 
   const load = async () => {
     setLoading(true);
@@ -149,6 +209,13 @@ export default function AdminOgrencilerPage() {
             {stats.total} öğrenci · {stats.unassigned} atanmamış
           </p>
         </div>
+        <button
+          onClick={() => setCreateOpen(true)}
+          className="flex items-center gap-2 bg-primary text-white text-sm px-4 py-2 rounded-lg hover:bg-primaryemphasis transition-colors"
+        >
+          <Icon icon="tabler:user-plus" width={16} />
+          Öğrenci Ekle
+        </button>
       </div>
 
       <div className="flex items-center gap-3 mb-5 flex-wrap">
@@ -335,6 +402,237 @@ export default function AdminOgrencilerPage() {
             );
           }}
         />
+      )}
+
+      {createOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !creating) {
+              setCreateOpen(false);
+              setCreatedInfo(null);
+            }
+          }}
+        >
+          <div className="bg-white dark:bg-darkgray rounded-xl p-4 sm:p-6 shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-dark dark:text-white">
+                {createdInfo ? "Öğrenci Oluşturuldu" : "Yeni Öğrenci"}
+              </h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setCreateOpen(false);
+                  setCreatedInfo(null);
+                }}
+                className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <Icon icon="tabler:x" width={18} />
+              </button>
+            </div>
+
+            {createdInfo ? (
+              <div className="space-y-4">
+                <div className="bg-success/10 border border-success/30 rounded-lg p-4">
+                  <p className="text-sm font-medium text-success flex items-center gap-2">
+                    <Icon icon="tabler:check" width={18} />
+                    Hesap oluşturuldu ve onaylandı
+                  </p>
+                  <p className="text-xs text-gray-600 dark:text-gray-300 mt-2">
+                    Bilgileri öğrencinizle paylaşın. Öğrenci ilk girişten sonra
+                    istediği zaman şifresini değiştirebilir.
+                  </p>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">E-posta</p>
+                    <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded-lg px-3 py-2">
+                      <span className="font-mono">{createdInfo.email}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard?.writeText(createdInfo.email);
+                          toast.success("E-posta kopyalandı");
+                        }}
+                        className="text-primary hover:text-primaryemphasis"
+                      >
+                        <Icon icon="tabler:copy" width={16} />
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Geçici Şifre</p>
+                    <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded-lg px-3 py-2">
+                      <span className="font-mono">{createdInfo.password}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard?.writeText(createdInfo.password);
+                          toast.success("Şifre kopyalandı");
+                        }}
+                        className="text-primary hover:text-primaryemphasis"
+                      >
+                        <Icon icon="tabler:copy" width={16} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCreatedInfo(null);
+                    }}
+                    className="flex-1 bg-primary text-white text-sm px-4 py-2 rounded-lg hover:bg-primaryemphasis"
+                  >
+                    Başka öğrenci ekle
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCreateOpen(false);
+                      setCreatedInfo(null);
+                    }}
+                    className="text-sm px-4 py-2 rounded-lg border border-border dark:border-darkborder hover:bg-gray-50 dark:hover:bg-gray-800"
+                  >
+                    Kapat
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleCreate} className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="sm:col-span-2">
+                    <label className="text-xs text-gray-500 mb-1 block">
+                      Ad Soyad *
+                    </label>
+                    <input
+                      required
+                      value={createForm.full_name}
+                      onChange={(e) =>
+                        setCreateForm({ ...createForm, full_name: e.target.value })
+                      }
+                      className="w-full text-sm border border-border dark:border-darkborder rounded-lg px-3 py-2 bg-white dark:bg-darkgray focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="text-xs text-gray-500 mb-1 block">
+                      E-posta *
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={createForm.email}
+                      onChange={(e) =>
+                        setCreateForm({ ...createForm, email: e.target.value })
+                      }
+                      className="w-full text-sm border border-border dark:border-darkborder rounded-lg px-3 py-2 bg-white dark:bg-darkgray focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500 mb-1 block">Telefon</label>
+                    <input
+                      type="tel"
+                      value={createForm.phone}
+                      onChange={(e) =>
+                        setCreateForm({ ...createForm, phone: e.target.value })
+                      }
+                      className="w-full text-sm border border-border dark:border-darkborder rounded-lg px-3 py-2 bg-white dark:bg-darkgray focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500 mb-1 block">Şehir</label>
+                    <input
+                      value={createForm.city}
+                      onChange={(e) =>
+                        setCreateForm({ ...createForm, city: e.target.value })
+                      }
+                      className="w-full text-sm border border-border dark:border-darkborder rounded-lg px-3 py-2 bg-white dark:bg-darkgray focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500 mb-1 block">
+                      Eğitim Seviyesi
+                    </label>
+                    <select
+                      value={createForm.education_level}
+                      onChange={(e) =>
+                        setCreateForm({
+                          ...createForm,
+                          education_level: e.target.value,
+                        })
+                      }
+                      className="w-full text-sm border border-border dark:border-darkborder rounded-lg px-3 py-2 bg-white dark:bg-darkgray focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    >
+                      <option value="">Seçim yok</option>
+                      {EDUCATION_OPTIONS.map(([v, l]) => (
+                        <option key={v} value={v}>
+                          {l}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500 mb-1 block">
+                      Atanmış Öğretmen
+                    </label>
+                    <select
+                      value={createForm.assigned_teacher_id}
+                      onChange={(e) =>
+                        setCreateForm({
+                          ...createForm,
+                          assigned_teacher_id: e.target.value,
+                        })
+                      }
+                      className="w-full text-sm border border-border dark:border-darkborder rounded-lg px-3 py-2 bg-white dark:bg-darkgray focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    >
+                      <option value="">Atama yok</option>
+                      {teachers.map((t) => (
+                        <option key={t.id} value={t.id}>
+                          {t.full_name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="text-xs text-gray-500 mb-1 block">
+                      Şifre (boş bırakırsan otomatik üretilir)
+                    </label>
+                    <input
+                      type="text"
+                      value={createForm.password}
+                      onChange={(e) =>
+                        setCreateForm({ ...createForm, password: e.target.value })
+                      }
+                      placeholder="En az 6 karakter, boş bırak → otomatik"
+                      className="w-full text-sm font-mono border border-border dark:border-darkborder rounded-lg px-3 py-2 bg-white dark:bg-darkgray focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2 pt-3">
+                  <button
+                    type="submit"
+                    disabled={creating}
+                    className="flex-1 bg-primary text-white text-sm px-5 py-2 rounded-lg hover:bg-primaryemphasis disabled:opacity-50"
+                  >
+                    {creating ? "Oluşturuluyor..." : "Öğrenciyi Oluştur"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCreateOpen(false);
+                      setCreateForm(emptyNewStudent);
+                    }}
+                    disabled={creating}
+                    className="text-sm px-5 py-2 rounded-lg border border-border dark:border-darkborder hover:bg-gray-50 dark:hover:bg-gray-800"
+                  >
+                    İptal
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );
