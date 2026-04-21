@@ -452,7 +452,7 @@ if (statsSection) {
 
 // Form submission
 const contactForm = document.getElementById("contactForm");
-contactForm.addEventListener("submit", (e) => {
+if (contactForm) contactForm.addEventListener("submit", (e) => {
   e.preventDefault();
 
   // Get form data
@@ -468,13 +468,16 @@ contactForm.addEventListener("submit", (e) => {
   contactForm.reset();
 });
 
-// Loading screen
-window.addEventListener("load", () => {
-  setTimeout(() => {
-    const loader = document.getElementById("loader");
-    loader.classList.add("hidden");
-  }, 1500);
-});
+// Loading screen — hide whether `load` already fired or not
+(function hideLoaderSafely() {
+  const hide = () =>
+    setTimeout(() => {
+      const loader = document.getElementById("loader");
+      if (loader) loader.classList.add("hidden");
+    }, 1200);
+  if (document.readyState === "complete") hide();
+  else window.addEventListener("load", hide, { once: true });
+})();
 
 // Add parallax effect to hero section
 window.addEventListener("scroll", () => {
