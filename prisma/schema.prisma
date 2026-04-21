@@ -56,6 +56,9 @@ model Profile {
   purchases         PurchaseHistory[]
   sent_messages     Message[]         @relation("SentMessages")
   received_messages Message[]         @relation("ReceivedMessages")
+  discovery_posts    DiscoveryPost[]
+  discovery_comments DiscoveryComment[]
+  discovery_likes    DiscoveryLike[]
 }
 
 model Package {
@@ -146,4 +149,46 @@ model PurchaseHistory {
 
   profile Profile @relation(fields: [user_id], references: [id])
   package Package @relation(fields: [package_id], references: [id])
+}
+
+model DiscoveryPost {
+  id          Int      @id @default(autoincrement())
+  author_id   String
+  title       String
+  content     String
+  media_urls  String[] @default([])
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  author   Profile            @relation(fields: [author_id], references: [id])
+  comments DiscoveryComment[]
+  likes    DiscoveryLike[]
+
+  @@index([created_at])
+  @@index([author_id])
+}
+
+model DiscoveryComment {
+  id         Int      @id @default(autoincrement())
+  post_id    Int
+  user_id    String
+  content    String
+  created_at DateTime @default(now())
+
+  post DiscoveryPost @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  user Profile       @relation(fields: [user_id], references: [id])
+
+  @@index([post_id, created_at])
+}
+
+model DiscoveryLike {
+  post_id    Int
+  user_id    String
+  created_at DateTime @default(now())
+
+  post DiscoveryPost @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  user Profile       @relation(fields: [user_id], references: [id])
+
+  @@id([post_id, user_id])
+  @@index([user_id])
 }
