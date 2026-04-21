@@ -1,61 +1,25 @@
-
-import { IconUser, IconMail, IconListCheck, IconProps, Icon} from '@tabler/icons-react';
-
-//  Profile Data
 interface ProfileType {
   title: string;
-  img: any;
-  subtitle: string;
+  subtitle?: string;
   url: string;
-  icon:string
+  icon: string;
 }
-
-import acccountIcon from "/public/images/svgs/icon-account.svg";
-import inboxIcon from "/public/images/svgs/icon-inbox.svg";
-import taskIcon from "/public/images/svgs/icon-tasks.svg";
-import { ForwardRefExoticComponent, RefAttributes } from 'react';
 
 const profileDD: ProfileType[] = [
   {
-    img: acccountIcon,
-    title: "My Profile",
-    subtitle: "Account settings",
-    icon:"tabler:user",
+    title: "Profilim",
+    subtitle: "Hesap ayarları",
+    icon: "tabler:user",
     url: "/user-profile",
   },
   {
-    img: inboxIcon,
-    title: "All Orders",
-    subtitle: "My Daily Notes",
-    icon:"tabler:align-box-bottom-right",
-    url: "/utilities/table",
+    title: "Mesajlar",
+    subtitle: "Sohbet geçmişi",
+    icon: "tabler:messages",
+    url: "/mesajlar",
   },
 ];
 
-const Notifications = [
-  {
-    title: "Roman Joined the Team!",
-    subtitle: "Congratulate him",
-  },
-  {
-    title: "New message",
-    subtitle: "Salma sent you new message",
-  },
-  {
-    title: "Bianca sent payment",
-    subtitle: "Check your earnings",
-  },
-  {
-    title: "Jolly completed tasks",
-    subtitle: "Assign her new tasks",
-  },
-  {
-    title: "John received payment",
-    subtitle: "$230 deducted from account",
-  },
-];
+const Notifications: { title: string; subtitle: string }[] = [];
 
-export {
-  Notifications,
-  profileDD,
-};
+export { Notifications, profileDD };

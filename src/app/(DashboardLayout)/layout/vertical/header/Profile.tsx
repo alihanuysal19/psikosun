@@ -16,11 +16,11 @@ const Profile = () => {
   const router = useRouter();
   const { logout, user } = useContext(AuthContext);
 
-  const userName = user?.displayName || "Mathew Anderson";
-
+  const userName = user?.displayName || "Kullanıcı";
 
   const handleLogout = async () => {
-    logout()
+    setIsLoading(true);
+    await logout();
     router.push('/auth/login');
   };
 
@@ -32,13 +32,12 @@ const Profile = () => {
         dismissOnClick={false}
         renderTrigger={() => (
           <div className="hover:text-primary hover:bg-lightprimary rounded-full flex justify-center items-center cursor-pointer group-hover/menu:bg-lightprimary group-hover/menu:text-primary">
-            {user?.user_metadata?.avatar_url ? (
-              <Image
-                src="/images/profile/user-1.jpg"
-                alt="logo"
-                height="35"
-                width="35"
-                className="rounded-full"
+            {user?.avatar ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={user.avatar}
+                alt={userName}
+                className="size-[35px] rounded-full object-cover"
               />
             ) : (
               <span className="size-[35px] rounded-full bg-lightprimary flex items-center justify-center text-primary border border-primary text-lg font-medium">
@@ -48,6 +47,10 @@ const Profile = () => {
           </div>
         )}
       >
+        <div className="px-4 pb-3 border-b border-border dark:border-darkborder">
+          <p className="text-sm font-semibold text-dark dark:text-white truncate">{userName}</p>
+          {user?.email && <p className="text-xs text-gray-400 truncate">{user.email}</p>}
+        </div>
         <SimpleBar>
           {profileData.profileDD.map((items, index) => (
             <DropdownItem
@@ -66,6 +69,9 @@ const Profile = () => {
                     <h5 className="mb-0 text-sm text-bodytext dark:text-darklink group-hover/link:text-primary">
                       {items.title}
                     </h5>
+                    {items.subtitle && (
+                      <span className="text-xs text-gray-400">{items.subtitle}</span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -77,11 +83,12 @@ const Profile = () => {
           <Button
             color={"outlineprimary"}
             size={"md"}
+            disabled={isLoading}
             className="w-full rounded-md py-0 flex items-center gap-2 disabled:hover:bg-none"
             onClick={handleLogout}
           >
-            {isLoading ? <Spinner aria-label="Info spinner example" size="sm" /> : null}
-            Logout
+            {isLoading ? <Spinner aria-label="Çıkış yapılıyor" size="sm" /> : null}
+            Çıkış Yap
           </Button>
         </div>
       </Dropdown>
