@@ -26,6 +26,23 @@ function coerceValue(key: string, val: unknown) {
   return val;
 }
 
+const LEGACY_PROFILE_SELECT = {
+  id: true,
+  email: true,
+  full_name: true,
+  role: true,
+  avatar_url: true,
+  phone: true,
+  parent_phone: true,
+  city: true,
+  district: true,
+  school: true,
+  education_level: true,
+  assigned_teacher_id: true,
+  is_active: true,
+  created_at: true,
+} as const;
+
 export async function GET(req: NextRequest) {
   const userId = req.nextUrl.searchParams.get("id");
   if (!userId) return NextResponse.json({ error: "Kullanıcı ID gerekli" }, { status: 400 });
@@ -41,7 +58,29 @@ export async function GET(req: NextRequest) {
     });
     if (!profile) return NextResponse.json({ error: "Profil bulunamadı" }, { status: 404 });
     return NextResponse.json({ data: serializePrisma(profile) });
-  } catch (error) {
+  } catch (error: any) {
+    // Schema yeni alan ekledi (örn. birth_date) ama DB migration
+    // çalıştırılmadıysa Prisma `column does not exist` atar. Legacy
+    // SELECT ile crashi engelle, kullanıcı panele girebilsin.
+    const msg = String(error?.message ?? "");
+    if (msg.includes("does not exist")) {
+      try {
+        const legacy = await prisma.profile.findUnique({
+          where: { id: userId },
+          select: {
+            ...LEGACY_PROFILE_SELECT,
+            assigned_teacher: { select: { id: true, full_name: true, email: true } },
+            user_packages: { include: { package: true }, orderBy: { purchased_at: "desc" } },
+            purchases: { include: { package: true }, orderBy: { created_at: "desc" } },
+          } as any,
+        });
+        if (!legacy)
+          return NextResponse.json({ error: "Profil bulunamadı" }, { status: 404 });
+        return NextResponse.json({ data: serializePrisma(legacy) });
+      } catch (fallbackErr) {
+        console.error("profile legacy fallback failed:", fallbackErr);
+      }
+    }
     console.error(error);
     return NextResponse.json({ error: "Sunucu hatası" }, { status: 500 });
   }
@@ -63,12 +102,35 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const profile = await prisma.profile.upsert({
-      where: { id },
-      update: optional,
-      create: { id, email, full_name, role: role ?? "STUDENT", ...optional },
-    });
-    return NextResponse.json({ data: profile });
+    // birth_date kolonu henüz eklenmemişse (migration gecikti) extras'ı
+    // optimistik temizle ki core user create'i crash etmesin
+    const filterMissing = async (op: () => Promise<any>) => {
+      try {
+        return await op();
+      } catch (err: any) {
+        const msg = String(err?.message ?? "");
+        if (msg.includes("does not exist") && "birth_date" in optional) {
+          const copy = { ...optional };
+          delete copy.birth_date;
+          return await prisma.profile.upsert({
+            where: { id },
+            update: copy,
+            create: { id, email, full_name, role: role ?? "STUDENT", ...copy },
+            select: LEGACY_PROFILE_SELECT,
+          });
+        }
+        throw err;
+      }
+    };
+
+    const profile = await filterMissing(() =>
+      prisma.profile.upsert({
+        where: { id },
+        update: optional,
+        create: { id, email, full_name, role: role ?? "STUDENT", ...optional },
+      }),
+    );
+    return NextResponse.json({ data: serializePrisma(profile) });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Sunucu hatası" }, { status: 500 });

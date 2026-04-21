@@ -66,6 +66,7 @@ export async function POST(req: NextRequest) {
     await prisma.profile.update({
       where: { id: userId },
       data: { avatar_url },
+      select: { id: true, avatar_url: true },
     });
 
     return NextResponse.json({ data: { avatar_url } });
@@ -92,6 +93,7 @@ export async function DELETE(req: NextRequest) {
     await prisma.profile.update({
       where: { id: userId },
       data: { avatar_url: null },
+      select: { id: true, avatar_url: true },
     });
 
     return NextResponse.json({ data: { success: true } });

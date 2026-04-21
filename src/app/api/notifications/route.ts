@@ -21,7 +21,13 @@ export async function GET(req: NextRequest) {
     ]);
 
     return NextResponse.json({ data: items, unread_count: unread });
-  } catch (error) {
+  } catch (error: any) {
+    // Notification tablosu henüz DB'de oluşturulmamışsa uygulamayı
+    // crash ettirme — sessiz şekilde boş feed dön.
+    const msg = String(error?.message ?? "");
+    if (msg.includes("does not exist") || msg.includes("relation") || error?.code === "P2021") {
+      return NextResponse.json({ data: [], unread_count: 0 });
+    }
     console.error(error);
     return NextResponse.json({ error: "Sunucu hatası" }, { status: 500 });
   }
