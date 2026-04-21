@@ -2,10 +2,11 @@
 import { useContext, useEffect, useState } from "react";
 import AuthContext from "@/app/context/AuthContext";
 import { Icon } from "@iconify/react";
+import { formatMoney, toNumberSafe } from "@/utils/format";
 
 interface Purchase {
   id: number;
-  amount: string;
+  amount: string | number;
   created_at: string;
   package: { name: string; lesson_count: number };
 }
@@ -22,7 +23,7 @@ export default function SatinAlmaGecmisiPage() {
       .then(({ data }) => { setPurchases(data?.purchases || []); setLoading(false); });
   }, [user?.id]);
 
-  const total = purchases.reduce((sum, p) => sum + parseFloat(p.amount), 0);
+  const total = purchases.reduce((sum, p) => sum + toNumberSafe(p.amount), 0);
 
   return (
     <div>
@@ -36,7 +37,7 @@ export default function SatinAlmaGecmisiPage() {
           <Icon icon="tabler:coin" className="text-primary" width={24} />
           <div>
             <p className="text-sm text-gray-500">Toplam Harcama</p>
-            <p className="font-bold text-dark dark:text-white">{total.toLocaleString("tr-TR")} ₺</p>
+            <p className="font-bold text-dark dark:text-white">{formatMoney(total)}</p>
           </div>
         </div>
       )}
@@ -70,7 +71,7 @@ export default function SatinAlmaGecmisiPage() {
                     {new Date(p.created_at).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" })}
                   </td>
                   <td className="px-5 py-4 text-right font-semibold text-dark dark:text-white">
-                    {parseFloat(p.amount).toLocaleString("tr-TR")} ₺
+                    {formatMoney(p.amount)}
                   </td>
                 </tr>
               ))}

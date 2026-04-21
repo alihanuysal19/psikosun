@@ -1,4 +1,5 @@
 import { prisma } from "@/utils/prisma";
+import { serializePrisma } from "@/utils/serialize";
 import { NextRequest, NextResponse } from "next/server";
 
 const EDITABLE_FIELDS = [
@@ -39,7 +40,7 @@ export async function GET(req: NextRequest) {
       },
     });
     if (!profile) return NextResponse.json({ error: "Profil bulunamadı" }, { status: 404 });
-    return NextResponse.json({ data: profile });
+    return NextResponse.json({ data: serializePrisma(profile) });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Sunucu hatası" }, { status: 500 });

@@ -3,13 +3,14 @@ import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { formatMoney } from "@/utils/format";
 
 interface Package {
   id: number;
   name: string;
   description: string | null;
   lesson_count: number;
-  price: string;
+  price: string | number;
   is_active: boolean;
 }
 
@@ -110,7 +111,7 @@ export default function AdminPaketlerPage() {
             {pkg.description && <p className="text-xs text-gray-400 mb-3">{pkg.description}</p>}
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-500">{pkg.lesson_count} ders</span>
-              <span className="font-bold text-dark dark:text-white">{parseFloat(pkg.price).toLocaleString("tr-TR")} ₺</span>
+              <span className="font-bold text-dark dark:text-white">{formatMoney(pkg.price)}</span>
             </div>
           </div>
         ))}
