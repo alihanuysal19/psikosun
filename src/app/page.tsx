@@ -12,20 +12,15 @@ export default function LandingPage() {
       document.head.appendChild(link);
     }
 
-    if (!document.getElementById("landing-script")) {
-      const script = document.createElement("script");
-      script.src = "/landing/prism-scripts.js";
-      script.id = "landing-script";
-      script.defer = true;
-      document.body.appendChild(script);
-    } else {
-      requestAnimationFrame(() => {
-        document.getElementById("loader")?.classList.add("hidden");
-      });
-    }
+    document.getElementById("landing-script")?.remove();
+    const script = document.createElement("script");
+    script.src = `/landing/prism-scripts.js?v=${Date.now()}`;
+    script.id = "landing-script";
+    document.body.appendChild(script);
 
     return () => {
       document.getElementById("landing-stylesheet")?.remove();
+      document.getElementById("landing-script")?.remove();
     };
   }, []);
 

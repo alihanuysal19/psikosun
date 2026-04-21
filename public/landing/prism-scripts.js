@@ -8,6 +8,10 @@ https://templatemo.com/tm-600-prism-flux
 
 */
 
+// IIFE wrapper — tüm top-level bindings script tag yeniden eklendiğinde
+// (örn. login'den geri dönüşte) çakışmasın diye izole scope'a alındı.
+(function () {
+
 // Portfolio data for carousel
 
 const portfolioData = [
@@ -489,3 +493,5 @@ if (contactForm)
 // Parallax effect disabled — hero was overlapping the next section
 // while scrolling. Carousel stays in place; the following sections
 // now stack cleanly below it.
+
+})(); // end IIFE
