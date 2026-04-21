@@ -20,6 +20,11 @@ enum LessonStatus {
   CANCELLED
 }
 
+enum NotificationType {
+  DISCOVERY_COMMENT
+  DISCOVERY_LIKE
+}
+
 enum EducationLevel {
   ILKOKUL
   ORTAOKUL
@@ -59,6 +64,8 @@ model Profile {
   discovery_posts    DiscoveryPost[]
   discovery_comments DiscoveryComment[]
   discovery_likes    DiscoveryLike[]
+  notifications         Notification[] @relation("NotificationRecipient")
+  notifications_as_actor Notification[] @relation("NotificationActor")
 }
 
 model Package {
@@ -191,4 +198,21 @@ model DiscoveryLike {
 
   @@id([post_id, user_id])
   @@index([user_id])
+}
+
+model Notification {
+  id         Int              @id @default(autoincrement())
+  user_id    String
+  actor_id   String
+  type       NotificationType
+  post_id    Int?
+  comment_id Int?
+  read_at    DateTime?
+  created_at DateTime         @default(now())
+
+  user  Profile @relation("NotificationRecipient", fields: [user_id], references: [id])
+  actor Profile @relation("NotificationActor", fields: [actor_id], references: [id])
+
+  @@index([user_id, read_at, created_at])
+  @@index([user_id, created_at])
 }

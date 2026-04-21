@@ -34,7 +34,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     const post = await prisma.discoveryPost.findUnique({
       where: { id: postId },
-      select: { id: true },
+      select: { id: true, author_id: true },
     });
     if (!post) return NextResponse.json({ error: "Gönderi bulunamadı" }, { status: 404 });
 
@@ -44,6 +44,21 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         user: { select: { id: true, full_name: true, role: true, avatar_url: true } },
       },
     });
+
+    if (post.author_id !== user_id) {
+      await prisma.notification
+        .create({
+          data: {
+            user_id: post.author_id,
+            actor_id: user_id,
+            type: "DISCOVERY_COMMENT",
+            post_id: postId,
+            comment_id: comment.id,
+          },
+        })
+        .catch((e) => console.error("notification create failed:", e));
+    }
+
     return NextResponse.json({ data: comment }, { status: 201 });
   } catch (error) {
     console.error(error);

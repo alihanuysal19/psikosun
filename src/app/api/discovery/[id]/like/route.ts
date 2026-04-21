@@ -23,6 +23,23 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       await prisma.discoveryLike.create({
         data: { post_id: postId, user_id },
       });
+
+      const post = await prisma.discoveryPost.findUnique({
+        where: { id: postId },
+        select: { author_id: true },
+      });
+      if (post && post.author_id !== user_id) {
+        await prisma.notification
+          .create({
+            data: {
+              user_id: post.author_id,
+              actor_id: user_id,
+              type: "DISCOVERY_LIKE",
+              post_id: postId,
+            },
+          })
+          .catch((e) => console.error("notification create failed:", e));
+      }
     }
 
     const count = await prisma.discoveryLike.count({ where: { post_id: postId } });
