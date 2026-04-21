@@ -449,10 +449,10 @@ if (statsSection) {
   observer.observe(statsSection);
 }
 
-// Form submission — WhatsApp yönlendirmesi ile mesajı iletir
+// Form submission — hem info@psikosun.com'a mail at, hem WhatsApp aç
 const contactForm = document.getElementById("contactForm");
 if (contactForm)
-  contactForm.addEventListener("submit", (e) => {
+  contactForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const formData = new FormData(contactForm);
@@ -466,6 +466,24 @@ if (contactForm)
       return;
     }
 
+    const submitBtn = contactForm.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn ? submitBtn.textContent : "";
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Gönderiliyor...";
+    }
+
+    // Backend mail — sessiz hata, WhatsApp akışı yine açılsın
+    try {
+      await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, subject, message }),
+      });
+    } catch (err) {
+      console.warn("contact mail failed, whatsapp fallback devam ediyor:", err);
+    }
+
     const whatsappNumber = "905395769930";
     const text =
       `Merhaba, psikosun.com üzerinden yazıyorum.\n\n` +
@@ -477,6 +495,11 @@ if (contactForm)
     window.open(waUrl, "_blank", "noopener");
 
     contactForm.reset();
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalBtnText;
+    }
+    alert("Mesajınız alındı. Hızlı yanıt için WhatsApp penceresi açıldı — oradan göndermeyi unutmayın.");
   });
 
 // Loading screen — hide whether `load` already fired or not
