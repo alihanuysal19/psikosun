@@ -1,5 +1,5 @@
 import React from "react";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Rajdhani, Orbitron } from "next/font/google";
 import "./css/globals.css";
 import { ThemeModeScript, ThemeProvider } from "flowbite-react";
@@ -21,8 +21,36 @@ const orbitron = Orbitron({
 });
 
 export const metadata: Metadata = {
-  title: "psikosun",
-  description: "psikosun — online eğitim platformu",
+  title: {
+    default: "PSIKOSUN",
+    template: "%s | PSIKOSUN",
+  },
+  description:
+    "PSIKOSUN — PDR temelli online rehberlik ve danışmanlık platformu. Akademik hedefler ve psikolojik dayanıklılığı birlikte destekler.",
+  applicationName: "PSIKOSUN",
+  icons: {
+    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+    apple: "/favicon.svg",
+  },
+  openGraph: {
+    title: "PSIKOSUN",
+    description: "PDR temelli online rehberlik ve danışmanlık platformu",
+    url: "https://psikosun.com",
+    siteName: "PSIKOSUN",
+    locale: "tr_TR",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "PSIKOSUN",
+    description: "PDR temelli online rehberlik ve danışmanlık platformu",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#7C3AED",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -33,7 +61,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <ThemeModeScript />
       </head>
       <body className={`${rajdhani.variable} ${orbitron.variable} font-body`}>
