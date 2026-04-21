@@ -135,7 +135,7 @@ function createCarouselItem(data, index) {
                 <div class="card">
                     <div class="card-number">0${data.id}</div>
                     <div class="card-image">
-                        <img src="${data.image}" alt="${data.title}">
+                        <img src="${data.image}" alt="${data.title}" width="340" height="200" loading="${index === 0 ? "eager" : "lazy"}" decoding="async" fetchpriority="${index === 0 ? "high" : "low"}">
                     </div>
                     <h3 class="card-title">${data.title}</h3>
                     <p class="card-description">${data.description}</p>

@@ -59,9 +59,24 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="tr">
       <head>
         <ThemeModeScript />
+        {/* Landing kritik asset'lerini hero paint'i beklerken arka planda
+            indir — SSR HTML'de sayfa tipi bilinmediği için preload hint
+            browser'a düşer ama page.tsx mount'unda kesin kullanılıyor. */}
+        <link
+          rel="preload"
+          href="/landing/images/logo.png"
+          as="image"
+          type="image/png"
+        />
+        <link
+          rel="preload"
+          href="/landing/prism-flux.css"
+          as="style"
+        />
+        <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
       </head>
       <body className={`${rajdhani.variable} ${orbitron.variable} font-body`}>
         <NextTopLoader />

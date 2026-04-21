@@ -54,7 +54,14 @@ export default function LandingPage() {
             <div className="logo-icon">
               <div className="logo-prism">
                 <div className="prism-shape"></div>
-                <img src="/landing/images/logo.png" alt="Logo" className="logo-center" />
+                <img
+                  src="/landing/images/logo.png"
+                  alt="Psikosun Logo"
+                  className="logo-center"
+                  width={48}
+                  height={48}
+                  fetchPriority="high"
+                />
               </div>
             </div>
             <span className="logo-text">
