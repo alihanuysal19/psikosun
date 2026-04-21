@@ -9,9 +9,21 @@ const EDITABLE_FIELDS = [
   "district",
   "school",
   "education_level",
+  "birth_date",
   "avatar_url",
   "assigned_teacher_id",
 ] as const;
+
+const DATE_FIELDS = new Set(["birth_date"]);
+
+function coerceValue(key: string, val: unknown) {
+  if (val === "" || val === null || val === undefined) return null;
+  if (DATE_FIELDS.has(key)) {
+    const d = new Date(String(val));
+    return isNaN(d.getTime()) ? null : d;
+  }
+  return val;
+}
 
 export async function GET(req: NextRequest) {
   const userId = req.nextUrl.searchParams.get("id");
@@ -37,13 +49,23 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { id, email, full_name, role } = body;
-    if (!id || !email || !full_name) return NextResponse.json({ error: "Eksik alan" }, { status: 400 });
+    const { id, email, full_name, role, ...rest } = body;
+    if (!id || !email || !full_name)
+      return NextResponse.json({ error: "Eksik alan" }, { status: 400 });
+
+    const optional: Record<string, any> = {};
+    for (const key of EDITABLE_FIELDS) {
+      if (key === "full_name" || key === "assigned_teacher_id") continue;
+      if (key in rest) {
+        const v = coerceValue(key, rest[key]);
+        if (v !== null) optional[key] = v;
+      }
+    }
 
     const profile = await prisma.profile.upsert({
       where: { id },
-      update: {},
-      create: { id, email, full_name, role: role ?? "STUDENT" },
+      update: optional,
+      create: { id, email, full_name, role: role ?? "STUDENT", ...optional },
     });
     return NextResponse.json({ data: profile });
   } catch (error) {
@@ -60,7 +82,7 @@ export async function PATCH(req: NextRequest) {
 
     const data: Record<string, any> = {};
     for (const key of EDITABLE_FIELDS) {
-      if (key in rest) data[key] = rest[key] === "" ? null : rest[key];
+      if (key in rest) data[key] = coerceValue(key, rest[key]);
     }
     if (Object.keys(data).length === 0) {
       return NextResponse.json({ error: "Güncellenecek alan yok" }, { status: 400 });

@@ -123,7 +123,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => authListener?.subscription?.unsubscribe();
   }, []);
 
-  const signup = async (email: string, password: string, userName: string) => {
+  const signup = async (
+    email: string,
+    password: string,
+    userName: string,
+    extra?: {
+      phone?: string;
+      birth_date?: string;
+      education_level?: string;
+      city?: string;
+      avatarFile?: File | null;
+    },
+  ) => {
     const redirectTo =
       typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : undefined;
     const { data, error } = await supabase.auth.signUp({
@@ -132,6 +143,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       options: { data: { full_name: userName }, emailRedirectTo: redirectTo },
     });
     if (error) throw new Error(translateAuthError(error.message));
+
+    if (data.user?.id && extra) {
+      const { avatarFile, ...profileExtras } = extra;
+      const cleaned: Record<string, any> = {};
+      for (const [k, v] of Object.entries(profileExtras)) {
+        if (v !== undefined && v !== null && v !== "") cleaned[k] = v;
+      }
+
+      try {
+        await fetch("/api/profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: data.user.id,
+            email,
+            full_name: userName,
+            ...cleaned,
+          }),
+        });
+      } catch (e) {
+        console.warn("profile extras post failed:", e);
+      }
+
+      if (avatarFile) {
+        try {
+          const fd = new FormData();
+          fd.append("user_id", data.user.id);
+          fd.append("file", avatarFile);
+          await fetch("/api/profile/avatar", { method: "POST", body: fd });
+        } catch (e) {
+          console.warn("avatar upload failed:", e);
+        }
+      }
+    }
+
     return { needsEmailConfirmation: !data.session, user: data.user };
   };
 

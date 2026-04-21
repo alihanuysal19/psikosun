@@ -46,6 +46,7 @@ model Profile {
   district            String?
   school              String?
   education_level     EducationLevel?
+  birth_date          DateTime?
   assigned_teacher_id String?
   is_active           Boolean         @default(true)
   created_at          DateTime        @default(now())
