@@ -13,8 +13,8 @@ function getAdminClient() {
 export async function GET() {
   try {
     const teachers = await prisma.profile.findMany({
-      where: { role: "TEACHER" },
-      include: { my_students: { select: { id: true } } },
+      where: { role: "TEACHER", is_active: true },
+      include: { my_students: { where: { is_active: true }, select: { id: true } } },
       orderBy: { full_name: "asc" },
     });
     return NextResponse.json({ data: teachers });

@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 export async function GET() {
   try {
     const teachers = await prisma.profile.findMany({
-      where: { role: "TEACHER" },
+      where: { role: "TEACHER", is_active: true },
       select: {
         id: true,
         full_name: true,

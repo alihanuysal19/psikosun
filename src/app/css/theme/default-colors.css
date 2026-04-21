@@ -21,12 +21,12 @@
 
   --margin-30: 30px;
   
-    --color-primary: #1750eb;
-    --color-primary-emphasis:#123fbb;   
-    --color-secondary: #3dd9eb;
-    --color-secondary-emphasis:rgb(54, 144, 192);
-    --color-lightprimary:#1750eb1a;
-    --color-lightsecondary:#3dd9eb2a;
+    --color-primary: #7c3aed;
+    --color-primary-emphasis:#6b2bdc;
+    --color-secondary: #00bcd4;
+    --color-secondary-emphasis:#0097a7;
+    --color-lightprimary:#7c3aed1a;
+    --color-lightsecondary:#00bcd41a;
     --color-info:#539BFF;
     --color-success:#13DEB9;
     --color-warning:#FFAE1F;

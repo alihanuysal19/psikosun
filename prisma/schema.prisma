@@ -42,6 +42,7 @@ model Profile {
   school              String?
   education_level     EducationLevel?
   assigned_teacher_id String?
+  is_active           Boolean         @default(true)
   created_at          DateTime        @default(now())
 
   assigned_teacher Profile?  @relation("TeacherStudents", fields: [assigned_teacher_id], references: [id])

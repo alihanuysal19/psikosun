@@ -1,32 +1,31 @@
-"use client"
-import CardBox from "@/app/components/shared/CardBox";
 import React from "react";
-import AuthLogin from "../authforms/AuthLogin";
 import Link from "next/link";
+import type { Metadata } from "next";
+import AuthShell from "@/app/components/shared/AuthShell";
+import AuthLogin from "../authforms/AuthLogin";
 
-const BoxedLogin = () => {
-  return (
-    <div className="relative overflow-hidden h-screen bg-lightprimary dark:bg-darkprimary">
-      <div className="flex h-full justify-center items-center px-4">
-        <CardBox className="md:w-[420px] w-full border-none">
-          {/* Marka */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-primary tracking-tight">psikosun</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Hesabınıza giriş yapın</p>
-          </div>
+export const metadata: Metadata = { title: "Giriş Yap — psikosun" };
 
-          <AuthLogin />
-
-          <div className="flex gap-2 text-sm text-gray-500 dark:text-gray-400 font-medium mt-6 items-center justify-center">
-            <p>Hesabınız yok mu?</p>
-            <Link href="/auth/register" className="text-primary font-semibold hover:underline">
-              Kayıt olun
-            </Link>
-          </div>
-        </CardBox>
+const LoginPage = () => (
+  <AuthShell
+    title="Giriş"
+    subtitle="Hesabınıza güvenli giriş yapın."
+    footer={
+      <div className="flex gap-2 items-center justify-center">
+        <span>Hesabınız yok mu?</span>
+        <Link href="/auth/register" className="font-semibold text-primary hover:underline">
+          Kayıt olun
+        </Link>
       </div>
+    }
+  >
+    <AuthLogin />
+    <div className="mt-5 text-center">
+      <Link href="/auth/forgot-password" className="text-xs text-gray-400 hover:text-primary">
+        Şifremi unuttum
+      </Link>
     </div>
-  );
-};
+  </AuthShell>
+);
 
-export default BoxedLogin;
+export default LoginPage;

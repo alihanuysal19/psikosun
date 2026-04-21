@@ -39,6 +39,22 @@ export default function AdminOgretmenlerPage() {
     }
   };
 
+  const handleDelete = async (teacher: Teacher) => {
+    const students = teacher.my_students?.length ?? 0;
+    const warn =
+      students > 0
+        ? `${teacher.full_name} hesabını pasifleştirmek istediğinize emin misiniz? ${students} öğrencinin ataması kaldırılacak.`
+        : `${teacher.full_name} hesabını pasifleştirmek istediğinize emin misiniz?`;
+    if (!confirm(warn)) return;
+    try {
+      await axios.delete(`/api/admin/teachers/${teacher.id}`);
+      toast.success("Öğretmen pasifleştirildi.");
+      fetchTeachers();
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || "Silinemedi.");
+    }
+  };
+
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
@@ -97,6 +113,7 @@ export default function AdminOgretmenlerPage() {
                 <th className="px-5 py-3 text-left">Öğretmen</th>
                 <th className="px-5 py-3 text-left">Öğrenci Sayısı</th>
                 <th className="px-5 py-3 text-left">Kayıt Tarihi</th>
+                <th className="px-5 py-3 text-right">İşlem</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border dark:divide-darkborder">
@@ -120,6 +137,15 @@ export default function AdminOgretmenlerPage() {
                   </td>
                   <td className="px-5 py-4 text-gray-500">
                     {new Date(t.created_at).toLocaleDateString("tr-TR")}
+                  </td>
+                  <td className="px-5 py-4 text-right">
+                    <button
+                      onClick={() => handleDelete(t)}
+                      className="text-xs text-error hover:underline inline-flex items-center gap-1"
+                    >
+                      <Icon icon="tabler:trash" width={14} />
+                      Pasifleştir
+                    </button>
                   </td>
                 </tr>
               ))}

@@ -71,6 +71,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { id, email, user_metadata } = session.user;
     const fullName = user_metadata?.full_name || email;
     const profile = await fetchOrCreateProfile(id, email, fullName);
+
+    if (profile && profile.is_active === false) {
+      await supabase.auth.signOut();
+      dispatch({ type: 'AUTH_STATE_CHANGED', payload: { isAuthenticated: false, user: null } });
+      if (typeof window !== 'undefined') {
+        alert('Hesabınız devre dışı bırakılmış. Lütfen yönetici ile iletişime geçin.');
+      }
+      return;
+    }
+
     dispatch({
       type: 'AUTH_STATE_CHANGED',
       payload: {

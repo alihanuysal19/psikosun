@@ -52,11 +52,7 @@ export default function LandingPage() {
             <div className="logo-icon">
               <div className="logo-prism">
                 <div className="prism-shape"></div>
-                <img
-                  src="/landing/images/Adsız (70 x 70 piksel) (1).png"
-                  alt="Logo"
-                  className="logo-center"
-                />
+                <img src="/landing/images/logo.png" alt="Logo" className="logo-center" />
               </div>
             </div>
             <span className="logo-text">

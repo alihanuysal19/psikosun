@@ -5,7 +5,7 @@ export async function GET(req: NextRequest) {
   const teacherId = req.nextUrl.searchParams.get("teacherId");
 
   try {
-    const where: any = { role: "STUDENT" };
+    const where: any = { role: "STUDENT", is_active: true };
     if (teacherId) where.assigned_teacher_id = teacherId;
 
     const students = await prisma.profile.findMany({

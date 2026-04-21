@@ -361,23 +361,19 @@ const navLinks = document.querySelectorAll(".nav-link");
 
 navLinks.forEach((link) => {
   link.addEventListener("click", function (e) {
-    e.preventDefault();
-    const targetId = this.getAttribute("href").substring(1);
+    const href = this.getAttribute("href") || "";
+    // Only intercept in-page hash links — let real routes navigate normally
+    if (!href.startsWith("#")) return;
+    const targetId = href.substring(1);
     const targetSection = document.getElementById(targetId);
+    if (!targetSection) return;
 
-    if (targetSection) {
-      const headerHeight = header.offsetHeight;
-      const targetPosition = targetSection.offsetTop - headerHeight;
-
-      window.scrollTo({
-        top: targetPosition,
-        behavior: "smooth",
-      });
-
-      // Close mobile menu if open
-      navMenu.classList.remove("active");
-      menuToggle.classList.remove("active");
-    }
+    e.preventDefault();
+    const headerHeight = header.offsetHeight;
+    const targetPosition = targetSection.offsetTop - headerHeight;
+    window.scrollTo({ top: targetPosition, behavior: "smooth" });
+    navMenu.classList.remove("active");
+    menuToggle.classList.remove("active");
   });
 });
 
@@ -479,11 +475,6 @@ if (contactForm) contactForm.addEventListener("submit", (e) => {
   else window.addEventListener("load", hide, { once: true });
 })();
 
-// Add parallax effect to hero section
-window.addEventListener("scroll", () => {
-  const scrolled = window.pageYOffset;
-  const parallax = document.querySelector(".hero");
-  if (parallax) {
-    parallax.style.transform = `translateY(${scrolled * 0.5}px)`;
-  }
-});
+// Parallax effect disabled — hero was overlapping the next section
+// while scrolling. Carousel stays in place; the following sections
+// now stack cleanly below it.

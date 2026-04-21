@@ -18,6 +18,10 @@
 @source '../../../node_modules/flowbite-react/dist/esm/**/*.mjs';
 @source '../../../.flowbite-react/class-list.json';
 
+.font-body { font-family: var(--font-rajdhani), "Rajdhani", system-ui, sans-serif; }
+.font-display { font-family: var(--font-orbitron), "Orbitron", system-ui, sans-serif; letter-spacing: 0.02em; }
+h1, h2, h3, h4, h5, h6 { font-family: var(--font-orbitron), "Orbitron", system-ui, sans-serif; }
+
 @theme {
   --shadow-md: var(--shadow-md);
   --shadow-lg: var(--shadow-lg);
