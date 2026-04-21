@@ -10,7 +10,12 @@ export async function GET(req: NextRequest) {
   if (!userId || !role) return NextResponse.json({ error: "Eksik parametre" }, { status: 400 });
 
   try {
-    const where: any = role === "TEACHER" ? { teacher_id: userId } : { student_id: userId };
+    const where: any =
+      role === "ADMIN"
+        ? {}
+        : role === "TEACHER"
+          ? { teacher_id: userId }
+          : { student_id: userId };
     if (from || to) {
       where.scheduled_at = {};
       if (from) where.scheduled_at.gte = new Date(from);

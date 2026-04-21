@@ -39,6 +39,7 @@ export const StudentSidebar: MenuItem[] = [
   {
     heading: "Eğitimim",
     children: [
+      { name: "Takvim", icon: "tabler:calendar", id: uniqueId(), url: "/takvim" },
       { name: "Derslerim", icon: "tabler:video", id: uniqueId(), url: "/derslerim" },
       { name: "Paketim", icon: "tabler:package", id: uniqueId(), url: "/paketim" },
       { name: "Satın Alma Geçmişi", icon: "tabler:receipt", id: uniqueId(), url: "/satin-alma-gecmisi" },
@@ -49,6 +50,12 @@ export const StudentSidebar: MenuItem[] = [
     children: [
       { name: "Mesajlar", icon: "tabler:messages", id: uniqueId(), url: "/mesajlar" },
       { name: "Notlarım", icon: "tabler:notes", id: uniqueId(), url: "/notlarim" },
+    ],
+  },
+  {
+    heading: "Topluluk",
+    children: [
+      { name: "Keşfet", icon: "tabler:sparkles", id: uniqueId(), url: "/kesfet" },
     ],
   },
   {
@@ -70,6 +77,7 @@ export const TeacherSidebar: MenuItem[] = [
     heading: "Öğrenciler",
     children: [
       { name: "Öğrenci Listesi", icon: "tabler:users", id: uniqueId(), url: "/ogretmen/ogrenciler" },
+      { name: "Takvim", icon: "tabler:calendar", id: uniqueId(), url: "/takvim" },
       { name: "Ders Yönetimi", icon: "tabler:calendar-event", id: uniqueId(), url: "/ogretmen/dersler" },
     ],
   },
@@ -78,6 +86,7 @@ export const TeacherSidebar: MenuItem[] = [
     children: [
       { name: "Öğrenci Notları", icon: "tabler:notes", id: uniqueId(), url: "/ogretmen/notlar" },
       { name: "Mesajlar", icon: "tabler:messages", id: uniqueId(), url: "/mesajlar" },
+      { name: "Keşfet", icon: "tabler:sparkles", id: uniqueId(), url: "/kesfet" },
     ],
   },
   {
@@ -103,6 +112,12 @@ export const AdminSidebar: MenuItem[] = [
     ],
   },
   {
+    heading: "Operasyon",
+    children: [
+      { name: "Takvim", icon: "tabler:calendar", id: uniqueId(), url: "/takvim" },
+    ],
+  },
+  {
     heading: "Paketler",
     children: [
       { name: "Paket Yönetimi", icon: "tabler:package", id: uniqueId(), url: "/admin/paketler" },
@@ -112,6 +127,7 @@ export const AdminSidebar: MenuItem[] = [
     heading: "İletişim",
     children: [
       { name: "Mesajlar", icon: "tabler:messages", id: uniqueId(), url: "/mesajlar" },
+      { name: "Keşfet", icon: "tabler:sparkles", id: uniqueId(), url: "/kesfet" },
     ],
   },
   {
