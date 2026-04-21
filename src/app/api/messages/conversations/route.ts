@@ -14,40 +14,51 @@ export async function GET(req: NextRequest) {
     });
     if (!me) return NextResponse.json({ error: "Profil bulunamadı" }, { status: 404 });
 
-    let partners: PartnerInfo[] = [];
+    const partnerIdSet = new Set<string>();
+
     if (me.role === "STUDENT" && me.assigned_teacher_id) {
-      const t = await prisma.profile.findUnique({
-        where: { id: me.assigned_teacher_id },
-        select: { id: true, full_name: true, role: true, avatar_url: true },
-      });
-      if (t) partners = [t];
+      partnerIdSet.add(me.assigned_teacher_id);
     } else if (me.role === "TEACHER") {
-      partners = await prisma.profile.findMany({
+      const students = await prisma.profile.findMany({
         where: { assigned_teacher_id: me.id },
-        select: { id: true, full_name: true, role: true, avatar_url: true },
-        orderBy: { full_name: "asc" },
+        select: { id: true },
       });
+      students.forEach((s) => partnerIdSet.add(s.id));
     } else if (me.role === "ADMIN") {
-      partners = await prisma.profile.findMany({
+      const all = await prisma.profile.findMany({
         where: { id: { not: me.id } },
-        select: { id: true, full_name: true, role: true, avatar_url: true },
-        orderBy: { full_name: "asc" },
-        take: 100,
+        select: { id: true },
+        take: 200,
       });
+      all.forEach((p) => partnerIdSet.add(p.id));
     }
 
-    if (partners.length === 0) return NextResponse.json({ data: [] });
+    const messaged = await prisma.message.findMany({
+      where: { OR: [{ sender_id: userId }, { receiver_id: userId }] },
+      select: { sender_id: true, receiver_id: true },
+    });
+    messaged.forEach((m) => {
+      if (m.sender_id !== userId) partnerIdSet.add(m.sender_id);
+      if (m.receiver_id !== userId) partnerIdSet.add(m.receiver_id);
+    });
 
-    const partnerIds = partners.map((p) => p.id);
+    if (partnerIdSet.size === 0) return NextResponse.json({ data: [] });
+
+    const partnerIds = Array.from(partnerIdSet);
+
+    const partners: PartnerInfo[] = await prisma.profile.findMany({
+      where: { id: { in: partnerIds } },
+      select: { id: true, full_name: true, role: true, avatar_url: true },
+    });
 
     const [lastMessages, unreadCounts] = await Promise.all([
       Promise.all(
-        partnerIds.map((pid) =>
+        partners.map((p) =>
           prisma.message.findFirst({
             where: {
               OR: [
-                { sender_id: userId, receiver_id: pid },
-                { sender_id: pid, receiver_id: userId },
+                { sender_id: userId, receiver_id: p.id },
+                { sender_id: p.id, receiver_id: userId },
               ],
             },
             orderBy: { created_at: "desc" },
@@ -73,7 +84,8 @@ export async function GET(req: NextRequest) {
       .sort((a, b) => {
         const at = a.last_message?.created_at?.getTime() ?? 0;
         const bt = b.last_message?.created_at?.getTime() ?? 0;
-        return bt - at;
+        if (bt !== at) return bt - at;
+        return a.partner.full_name.localeCompare(b.partner.full_name, "tr");
       });
 
     return NextResponse.json({ data: conversations });
