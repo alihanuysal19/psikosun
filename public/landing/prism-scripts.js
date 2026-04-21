@@ -136,7 +136,6 @@ function createCarouselItem(data, index) {
                     <h3 class="card-title">${data.title}</h3>
                     <p class="card-description">${data.description}</p>
                     <div class="card-tech">${techBadges}</div>
-                    <button class="card-cta" onclick="scrollToSection('about')">Detaylar</button>
                 </div>
             `;
 
