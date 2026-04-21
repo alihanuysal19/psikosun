@@ -257,7 +257,9 @@ export default function LandingPage() {
       {/* Paketler */}
       <section className="stats-section" id="packages">
         <div className="section-header">
-          <h2 className="section-title">📦 Paketler</h2>
+          <h2 className="section-title">
+            <span className="title-emoji">📦</span> Paketler
+          </h2>
           <p className="section-subtitle">
             İhtiyacına göre seç: hızlı başlangıçtan tam kapsamlı sürece kadar
           </p>

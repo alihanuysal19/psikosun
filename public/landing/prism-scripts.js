@@ -412,6 +412,7 @@ window.addEventListener("scroll", updateActiveNav);
 // Animated counter for stats
 function animateCounter(element) {
   const target = parseInt(element.dataset.target);
+  if (!Number.isFinite(target) || target <= 0) return; // data-target yoksa sessiz çık — "NaN" yazmaktan iyidir
   const duration = 2000;
   const step = target / (duration / 16);
   let current = 0;
@@ -439,7 +440,10 @@ const observerOptions = {
 const observer = new IntersectionObserver((entries) => {
   entries.forEach((entry) => {
     if (entry.isIntersecting) {
-      const statNumbers = entry.target.querySelectorAll(".stat-number");
+      // Sadece data-target taşıyan stat-number'ları animate et. Paketler
+      // section'ındaki hardcoded fiyat span'lerinin yanlışlıkla "NaN" ile
+      // üzerine yazılmasını engeller.
+      const statNumbers = entry.target.querySelectorAll(".stat-number[data-target]");
       statNumbers.forEach((number) => {
         if (!number.classList.contains("animated")) {
           number.classList.add("animated");
