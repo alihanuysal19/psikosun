@@ -33,10 +33,21 @@ const MobileSidebar = () => {
       >
         <div className="px-6 flex items-center brand-logo overflow-hidden">
           <div className="flex items-center gap-2 py-1">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <Icon icon="tabler:brain" className="text-white" width={18} />
+            <div className="w-9 h-9 rounded-lg overflow-hidden bg-white ring-1 ring-primary/20 flex items-center justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/landing/images/logo.png" alt="psikosun" className="w-full h-full object-contain p-0.5" />
             </div>
-            <span className="text-lg font-bold text-dark dark:text-white">psikosun</span>
+            <span
+              className="text-lg font-black tracking-[0.12em]"
+              style={{
+                fontFamily: "var(--font-orbitron),Orbitron,sans-serif",
+                background: "linear-gradient(90deg,#7c3aed,#00bcd4)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
+              PSIKOSUN
+            </span>
           </div>
         </div>
 

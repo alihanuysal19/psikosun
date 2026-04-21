@@ -457,7 +457,7 @@ if (contactForm) contactForm.addEventListener("submit", (e) => {
 
   // Show success message
   alert(
-    `Thank you ${data.name}! Your message has been transmitted successfully. We'll respond within 24 hours.`,
+    `Teşekkürler ${data.name}! Mesajınız başarıyla iletildi. 24 saat içinde size dönüş yapacağız.`,
   );
 
   // Reset form

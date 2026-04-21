@@ -32,5 +32,5 @@ export default function AuthCallback() {
     handleAuth();
   }, [router]);
 
-  return <p>Loading...</p>;
+  return <p className="text-center p-10 text-gray-500">Yükleniyor...</p>;
 }

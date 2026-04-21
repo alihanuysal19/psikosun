@@ -63,7 +63,7 @@ export const TeacherSidebar: MenuItem[] = [
   {
     heading: "Genel",
     children: [
-      { name: "Dashboard", icon: "tabler:layout-dashboard", id: uniqueId(), url: "/panel" },
+      { name: "Ana Sayfa", icon: "tabler:layout-dashboard", id: uniqueId(), url: "/panel" },
     ],
   },
   {
@@ -92,7 +92,7 @@ export const AdminSidebar: MenuItem[] = [
   {
     heading: "Genel",
     children: [
-      { name: "Dashboard", icon: "tabler:layout-dashboard", id: uniqueId(), url: "/panel" },
+      { name: "Ana Sayfa", icon: "tabler:layout-dashboard", id: uniqueId(), url: "/panel" },
     ],
   },
   {
