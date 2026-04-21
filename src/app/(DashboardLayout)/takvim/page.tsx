@@ -295,7 +295,7 @@ export default function TakvimPage() {
                   <button
                     key={idx}
                     onClick={() => setSelected(d)}
-                    className={`min-h-[82px] p-1.5 border-r border-b border-border dark:border-darkborder text-left transition-colors ${
+                    className={`min-h-[56px] sm:min-h-[82px] p-1 sm:p-1.5 border-r border-b border-border dark:border-darkborder text-left transition-colors ${
                       !inMonth ? "bg-gray-50/50 dark:bg-gray-900/30 text-gray-400" : ""
                     } ${
                       isSelected
@@ -317,7 +317,7 @@ export default function TakvimPage() {
                         </span>
                       )}
                     </div>
-                    <div className="mt-1 space-y-0.5">
+                    <div className="hidden sm:block mt-1 space-y-0.5">
                       {dayLessons.slice(0, 2).map((l) => (
                         <div
                           key={l.id}
@@ -337,6 +337,11 @@ export default function TakvimPage() {
                         </div>
                       )}
                     </div>
+                    {dayLessons.length > 0 && (
+                      <div className="sm:hidden mt-0.5 flex justify-center">
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                      </div>
+                    )}
                   </button>
                 );
               })}
@@ -432,7 +437,7 @@ export default function TakvimPage() {
         >
           <form
             onSubmit={handleAdd}
-            className="bg-white dark:bg-darkgray rounded-xl p-5 shadow-xl w-full max-w-lg"
+            className="bg-white dark:bg-darkgray rounded-xl p-4 sm:p-5 shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-dark dark:text-white">Yeni Ders</h3>

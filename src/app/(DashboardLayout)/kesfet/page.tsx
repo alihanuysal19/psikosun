@@ -241,7 +241,7 @@ export default function KesfetPage() {
             />
 
             {mediaUrls.length > 0 && (
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {mediaUrls.map((u, i) => (
                   <div
                     key={u}

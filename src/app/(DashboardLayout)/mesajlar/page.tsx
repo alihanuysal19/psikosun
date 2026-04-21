@@ -130,8 +130,12 @@ export default function MesajlarPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] h-full bg-white dark:bg-darkgray rounded-xl shadow-sm border border-border dark:border-darkborder overflow-hidden">
-        {/* Konuşma listesi */}
-        <aside className="border-r border-border dark:border-darkborder overflow-y-auto">
+        {/* Konuşma listesi — mobilde aktif sohbet varsa gizle */}
+        <aside
+          className={`border-r border-border dark:border-darkborder overflow-y-auto ${
+            activePartner ? "hidden md:block" : "block"
+          }`}
+        >
           <div className="px-4 py-3 border-b border-border dark:border-darkborder">
             <h2 className="text-sm font-semibold text-dark dark:text-white">Kişiler</h2>
           </div>
@@ -182,16 +186,26 @@ export default function MesajlarPage() {
           )}
         </aside>
 
-        {/* Chat alanı */}
-        <section className="flex flex-col min-w-0">
+        {/* Chat alanı — mobilde aktif sohbet yoksa gizle */}
+        <section
+          className={`flex flex-col min-w-0 ${activePartner ? "flex" : "hidden md:flex"}`}
+        >
           {activePartner ? (
             <>
-              <header className="px-5 py-3 border-b border-border dark:border-darkborder flex items-center gap-3">
+              <header className="px-3 sm:px-5 py-3 border-b border-border dark:border-darkborder flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setActivePartner(null)}
+                  className="md:hidden flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 -ml-1"
+                  aria-label="Listeye dön"
+                >
+                  <Icon icon="tabler:arrow-left" width={18} />
+                </button>
                 <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <Icon icon="tabler:user" className="text-primary" width={18} />
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-dark dark:text-white">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-dark dark:text-white truncate">
                     {activePartner.full_name}
                   </p>
                   <p className="text-xs text-gray-400">{roleText(activePartner.role)}</p>
@@ -200,7 +214,7 @@ export default function MesajlarPage() {
 
               <div
                 ref={scrollRef}
-                className="flex-1 overflow-y-auto p-5 space-y-3 bg-gray-50 dark:bg-gray-900"
+                className="flex-1 overflow-y-auto p-3 sm:p-5 space-y-3 bg-gray-50 dark:bg-gray-900"
               >
                 {loadingChat ? (
                   <div className="flex items-center justify-center h-full">
@@ -250,7 +264,7 @@ export default function MesajlarPage() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Mesajınızı yazın..."
-                  className="flex-1 text-sm border border-border dark:border-darkborder rounded-full px-4 py-2 bg-white dark:bg-darkgray focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  className="flex-1 text-sm text-base sm:text-sm border border-border dark:border-darkborder rounded-full px-4 py-2 bg-white dark:bg-darkgray focus:outline-none focus:ring-2 focus:ring-primary/30"
                 />
                 <button
                   type="submit"

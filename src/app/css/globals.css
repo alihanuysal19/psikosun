@@ -393,3 +393,37 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-orbitron), "Orbitron", system-u
   }
 
 }
+
+/* Mobil tarayıcı uyum overrides */
+@media (max-width: 640px) {
+  /* iOS Safari inputlarda 16px altı font-size zoom yapıyor, engelle */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="search"],
+  input[type="date"],
+  input[type="datetime-local"],
+  input[type="time"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+
+  /* Touch hedefleri minimum 40px */
+  button,
+  [role="button"],
+  a.btn {
+    min-height: 36px;
+  }
+
+  /* Tablolara overflow-x garanti */
+  table:not([class*="min-w"]) {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+  }
+}
