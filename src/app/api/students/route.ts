@@ -11,6 +11,7 @@ export async function GET(req: NextRequest) {
     const students = await prisma.profile.findMany({
       where,
       include: {
+        assigned_teacher: { select: { id: true, full_name: true } },
         user_packages: {
           include: { package: true },
           orderBy: { purchased_at: "desc" },
@@ -35,11 +36,21 @@ export async function PATCH(req: NextRequest) {
   try {
     const body = await req.json();
     const { student_id, teacher_id } = body;
-    if (!student_id || !teacher_id) return NextResponse.json({ error: "Eksik alan" }, { status: 400 });
+    if (!student_id) return NextResponse.json({ error: "student_id gerekli" }, { status: 400 });
+
+    if (teacher_id) {
+      const teacher = await prisma.profile.findUnique({
+        where: { id: teacher_id },
+        select: { role: true },
+      });
+      if (!teacher || teacher.role !== "TEACHER") {
+        return NextResponse.json({ error: "Geçersiz öğretmen" }, { status: 400 });
+      }
+    }
 
     const student = await prisma.profile.update({
       where: { id: student_id },
-      data: { assigned_teacher_id: teacher_id },
+      data: { assigned_teacher_id: teacher_id ?? null },
     });
     return NextResponse.json({ data: student });
   } catch (error) {
