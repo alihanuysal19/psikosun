@@ -4,21 +4,28 @@ import Link from "next/link";
 
 export default function LandingPage() {
   useEffect(() => {
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = "/landing/prism-flux.css";
-    link.id = "landing-stylesheet";
-    document.head.appendChild(link);
+    if (!document.getElementById("landing-stylesheet")) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = "/landing/prism-flux.css";
+      link.id = "landing-stylesheet";
+      document.head.appendChild(link);
+    }
 
-    const script = document.createElement("script");
-    script.src = "/landing/prism-scripts.js";
-    script.id = "landing-script";
-    script.defer = true;
-    document.body.appendChild(script);
+    if (!document.getElementById("landing-script")) {
+      const script = document.createElement("script");
+      script.src = "/landing/prism-scripts.js";
+      script.id = "landing-script";
+      script.defer = true;
+      document.body.appendChild(script);
+    } else {
+      requestAnimationFrame(() => {
+        document.getElementById("loader")?.classList.add("hidden");
+      });
+    }
 
     return () => {
       document.getElementById("landing-stylesheet")?.remove();
-      document.getElementById("landing-script")?.remove();
     };
   }, []);
 
