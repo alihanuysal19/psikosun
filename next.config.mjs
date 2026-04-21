@@ -3,7 +3,6 @@ import withFlowbiteReact from "flowbite-react/plugin/nextjs";
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
-  output: "standalone",
   images: { unoptimized: true },
   async headers() {
     return [
