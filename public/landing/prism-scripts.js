@@ -445,23 +445,35 @@ if (statsSection) {
   observer.observe(statsSection);
 }
 
-// Form submission
+// Form submission — WhatsApp yönlendirmesi ile mesajı iletir
 const contactForm = document.getElementById("contactForm");
-if (contactForm) contactForm.addEventListener("submit", (e) => {
-  e.preventDefault();
+if (contactForm)
+  contactForm.addEventListener("submit", (e) => {
+    e.preventDefault();
 
-  // Get form data
-  const formData = new FormData(contactForm);
-  const data = Object.fromEntries(formData);
+    const formData = new FormData(contactForm);
+    const name = String(formData.get("name") || "").trim();
+    const email = String(formData.get("email") || "").trim();
+    const subject = String(formData.get("subject") || "").trim();
+    const message = String(formData.get("message") || "").trim();
 
-  // Show success message
-  alert(
-    `Teşekkürler ${data.name}! Mesajınız başarıyla iletildi. 24 saat içinde size dönüş yapacağız.`,
-  );
+    if (!name || !email || !subject || !message) {
+      alert("Lütfen tüm alanları doldurun.");
+      return;
+    }
 
-  // Reset form
-  contactForm.reset();
-});
+    const whatsappNumber = "905395769930";
+    const text =
+      `Merhaba, psikosun.com üzerinden yazıyorum.\n\n` +
+      `Ad Soyad: ${name}\n` +
+      `E-posta: ${email}\n` +
+      `Konu: ${subject}\n\n` +
+      `Mesaj:\n${message}`;
+    const waUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(text)}`;
+    window.open(waUrl, "_blank", "noopener");
+
+    contactForm.reset();
+  });
 
 // Loading screen — hide whether `load` already fired or not
 (function hideLoaderSafely() {
