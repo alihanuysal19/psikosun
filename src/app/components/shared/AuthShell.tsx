@@ -1,4 +1,7 @@
+"use client";
 import React from "react";
+import Link from "next/link";
+import { Icon } from "@iconify/react/dist/iconify.js";
 
 type Props = {
   title: string;
@@ -31,13 +34,22 @@ const AuthShell = ({ title, subtitle, children, footer }: Props) => {
         }}
       />
 
+      {/* Ana sayfa dönüş butonu — mobilde ve masaüstünde üst köşede */}
+      <Link
+        href="/"
+        className="fixed top-3 left-3 sm:top-5 sm:left-5 z-20 inline-flex items-center gap-1.5 rounded-full bg-white/80 backdrop-blur-sm border border-primary/20 px-3 py-1.5 text-xs font-medium text-primary shadow-sm hover:bg-white transition-colors"
+      >
+        <Icon icon="tabler:arrow-left" width={14} />
+        Ana Sayfa
+      </Link>
+
       <div className="flex min-h-screen items-center justify-center px-4 py-10">
         <div className="w-full max-w-[440px]">
-          {/* Prism brand */}
+          {/* Prism brand — logo tıklanabilir, ana sayfaya gider */}
           <div className="flex flex-col items-center gap-4 mb-8">
-            <div className="relative w-20 h-20">
+            <Link href="/" className="relative w-20 h-20 group" aria-label="Ana sayfaya git">
               <div
-                className="absolute inset-0 rounded-2xl"
+                className="absolute inset-0 rounded-2xl transition-transform group-hover:scale-105"
                 style={{
                   background:
                     "linear-gradient(135deg,#7c3aed 0%,#9333ea 50%,#00bcd4 100%)",
@@ -51,10 +63,11 @@ const AuthShell = ({ title, subtitle, children, footer }: Props) => {
                   className="w-full h-full object-contain p-2"
                 />
               </div>
-            </div>
+            </Link>
             <div className="text-center">
-              <h1
-                className="text-2xl font-black tracking-[0.12em]"
+              <Link
+                href="/"
+                className="inline-block text-2xl font-black tracking-[0.12em] hover:opacity-80 transition-opacity"
                 style={{
                   fontFamily: "var(--font-orbitron),Orbitron,sans-serif",
                   background:
@@ -64,7 +77,7 @@ const AuthShell = ({ title, subtitle, children, footer }: Props) => {
                 }}
               >
                 PSIKOSUN
-              </h1>
+              </Link>
               <p className="text-xs uppercase tracking-[0.25em] text-gray-500 mt-1">
                 {title}
               </p>

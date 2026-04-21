@@ -427,10 +427,13 @@ function animateCounter(element) {
   }, 16);
 }
 
-// Intersection Observer for stats animation
+// Intersection Observer for stats animation — mobilde threshold 0.5 +
+// rootMargin -100px kombinasyonu tetiklenmiyordu (viewport dar,
+// section'ın yarısı asla görünmüyor). Eşik 0.1'e düşürüldü,
+// rootMargin pozitif alt offset ile kartlar ekrana girer girmez başlıyor.
 const observerOptions = {
-  threshold: 0.5,
-  rootMargin: "0px 0px -100px 0px",
+  threshold: 0.1,
+  rootMargin: "0px 0px -10% 0px",
 };
 
 const observer = new IntersectionObserver((entries) => {
@@ -447,10 +450,23 @@ const observer = new IntersectionObserver((entries) => {
   });
 }, observerOptions);
 
-const statsSection = document.querySelector(".stats-section");
-if (statsSection) {
-  observer.observe(statsSection);
-}
+// Tüm .stats-section element'lerini gözlemle (Güven göstergeleri +
+// gelecekte eklenebilecek diğer sayılı bölümler). Paket section'ı
+// data-target içermiyor, güvenle skip.
+document.querySelectorAll(".stats-section").forEach((sec) => observer.observe(sec));
+
+// Fallback: Viewport çok dar veya kullanıcı section'a anında
+// scroll ederse observer bazı cihazlarda gecikebiliyor. Sayfa
+// yüklendikten 3 sn sonra hala animate olmamış sayaçları forcelu
+// tetikle — yine de UX'e zararlı değil, sadece garanti.
+setTimeout(() => {
+  document.querySelectorAll(".stat-number[data-target]").forEach((n) => {
+    if (!n.classList.contains("animated")) {
+      n.classList.add("animated");
+      animateCounter(n);
+    }
+  });
+}, 3000);
 
 // Form submission — hem info@psikosun.com'a mail at, hem WhatsApp aç
 const contactForm = document.getElementById("contactForm");

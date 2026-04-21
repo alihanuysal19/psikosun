@@ -75,7 +75,15 @@ const Header = () => {
 
 
           <div className="block">
-            <div className="flex gap-0 items-center">
+            <div className="flex gap-1 sm:gap-3 items-center">
+              <Link
+                href="/"
+                aria-label="Ana Sayfa"
+                className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 text-primary hover:bg-primary hover:text-white transition-colors px-3 py-1.5 text-xs sm:text-sm font-medium"
+              >
+                <Icon icon="tabler:home" width={16} />
+                <span className="hidden sm:inline">Ana Sayfa</span>
+              </Link>
               <Profile />
             </div>
           </div>
