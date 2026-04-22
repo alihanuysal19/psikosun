@@ -29,8 +29,12 @@ export const metadata: Metadata = {
     "PSIKOSUN — PDR temelli online rehberlik ve danışmanlık platformu. Akademik hedefler ve psikolojik dayanıklılığı birlikte destekler.",
   applicationName: "PSIKOSUN",
   icons: {
-    icon: [{ url: "/landing/images/logo.png", type: "image/png" }],
-    shortcut: "/landing/images/logo.png",
+    // Beyaz arka planlı SVG (tercih edilir) + logo.png fallback (Safari eski sürümler için)
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/landing/images/logo.png", type: "image/png" },
+    ],
+    shortcut: "/favicon.svg",
     apple: "/landing/images/logo.png",
   },
   openGraph: {
