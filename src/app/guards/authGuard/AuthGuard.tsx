@@ -1,36 +1,27 @@
-'use client';
+"use client";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from 'react';
+import { useContext, useEffect } from "react";
 import Spinner from "@/app/components/shared/spinner/Spinner";
-import { supabase } from "@/app/guards/supabase/supabaseClient";
+import AuthContext from "@/app/context/AuthContext";
 
 const AuthGuard = ({ children }: any) => {
   const router = useRouter();
-  const [checked, setChecked] = useState<boolean | null>(null);
+  const { isInitialized, isAuthenticated, user } = useContext(AuthContext) as any;
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setChecked(true);
-      } else {
-        setChecked(false);
-        router.replace('/auth/login');
-      }
-    });
+    if (!isInitialized) return;
+    if (!isAuthenticated || !user) {
+      router.replace("/auth/login");
+    }
+  }, [isInitialized, isAuthenticated, user, router]);
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        setChecked(true);
-      } else {
-        setChecked(false);
-        router.replace('/auth/login');
-      }
-    });
+  // AuthContext henüz session'ı initialize etmediyse spinner göster
+  // (getSession() + profile fetch bitene kadar race olmasın — kullanıcı
+  // landing'e gidip gelince AuthContext yeniden mount olmaz, isInitialized
+  // true kalır, dolayısıyla flicker/redirect yaşanmaz)
+  if (!isInitialized) return <Spinner />;
+  if (!isAuthenticated) return <Spinner />;
 
-    return () => listener.subscription.unsubscribe();
-  }, [router]);
-
-  if (checked === null || checked === false) return <Spinner />;
   return children;
 };
 
