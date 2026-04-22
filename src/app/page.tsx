@@ -151,12 +151,33 @@ export default function LandingPage() {
             ) : (
               <>
                 <li>
-                  <Link href="/auth/login" className="nav-link">
+                  <Link
+                    href="/auth/login"
+                    className="nav-link"
+                    style={{
+                      background: "transparent",
+                      border: "1px solid rgba(124,58,237,0.35)",
+                      color: "#7c3aed",
+                      padding: "8px 18px",
+                      borderRadius: "999px",
+                      fontWeight: 600,
+                    }}
+                  >
                     Giriş
                   </Link>
                 </li>
                 <li>
-                  <Link href="/auth/register" className="nav-link">
+                  <Link
+                    href="/auth/register"
+                    className="nav-link nav-cta"
+                    style={{
+                      background: "linear-gradient(135deg,#7c3aed,#00bcd4)",
+                      color: "#fff",
+                      padding: "8px 18px",
+                      borderRadius: "999px",
+                      fontWeight: 600,
+                    }}
+                  >
                     Kayıt Ol
                   </Link>
                 </li>
