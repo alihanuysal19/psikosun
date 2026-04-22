@@ -40,7 +40,7 @@ const MobileSidebar = () => {
             <span
               className="text-lg font-black tracking-[0.12em]"
               style={{
-                fontFamily: "var(--font-orbitron),Orbitron,sans-serif",
+                fontFamily: "var(--font-grotesk),'Space Grotesk',system-ui,sans-serif",
                 background: "linear-gradient(90deg,#7c3aed,#00bcd4)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",

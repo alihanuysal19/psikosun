@@ -69,7 +69,7 @@ const AuthShell = ({ title, subtitle, children, footer }: Props) => {
                 href="/"
                 className="inline-block text-2xl font-black tracking-[0.12em] hover:opacity-80 transition-opacity"
                 style={{
-                  fontFamily: "var(--font-orbitron),Orbitron,sans-serif",
+                  fontFamily: "var(--font-grotesk),'Space Grotesk',system-ui,sans-serif",
                   background:
                     "linear-gradient(90deg,#7c3aed,#00bcd4)",
                   WebkitBackgroundClip: "text",

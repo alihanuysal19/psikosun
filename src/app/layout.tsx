@@ -1,6 +1,6 @@
 import React from "react";
 import type { Metadata, Viewport } from "next";
-import { Rajdhani, Orbitron } from "next/font/google";
+import { Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google";
 import "./css/globals.css";
 import { ThemeModeScript, ThemeProvider } from "flowbite-react";
 import customTheme from "@/utils/theme/custom-theme";
@@ -9,15 +9,20 @@ import "../utils/i18n";
 import NextTopLoader from "nextjs-toploader";
 import { AuthProvider } from "../app/context/AuthContext";
 
-const rajdhani = Rajdhani({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-rajdhani",
+// Marka yazı tipleri — psikosun teması için seçildi:
+//  Gövde: Plus Jakarta Sans (sıcak, profesyonel, yüksek okunabilirlik)
+//  Başlık: Space Grotesk (modern, hafif teknik, brand gradient'iyle uyumlu)
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ["latin", "latin-ext"],
+  weight: ["300", "400", "500", "600", "700", "800"],
+  variable: "--font-jakarta",
+  display: "swap",
 });
-const orbitron = Orbitron({
-  subsets: ["latin"],
-  weight: ["500", "700", "900"],
-  variable: "--font-orbitron",
+const grotesk = Space_Grotesk({
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-grotesk",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -83,7 +88,7 @@ export default function RootLayout({
         />
         <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
       </head>
-      <body className={`${rajdhani.variable} ${orbitron.variable} font-body`}>
+      <body className={`${jakarta.variable} ${grotesk.variable} font-body`}>
         <NextTopLoader />
         <ThemeProvider theme={customTheme}>
           <AuthProvider>
