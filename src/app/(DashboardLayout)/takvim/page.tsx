@@ -512,14 +512,30 @@ export default function TakvimPage() {
                 </div>
               </div>
               <div>
-                <label className="text-xs text-gray-500 mb-1 block">Platform Linki</label>
+                <label className="text-xs text-gray-500 mb-1 block">
+                  Platform Linki (opsiyonel)
+                </label>
                 <input
                   type="url"
-                  placeholder="https://zoom.us/j/..."
+                  placeholder="https://zoom.us/j/1234567890"
+                  pattern="https?://.+"
+                  title="Link https:// veya http:// ile başlamalı. Örn: https://zoom.us/j/123"
                   value={form.platform_link}
-                  onChange={(e) => setForm({ ...form, platform_link: e.target.value })}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    e.target.setCustomValidity(
+                      v && !/^https?:\/\/.+/.test(v)
+                        ? 'Link "https://" veya "http://" ile başlamalı. Örn: https://meet.google.com/xxx-yyyy-zzz'
+                        : "",
+                    );
+                    setForm({ ...form, platform_link: v });
+                  }}
                   className="w-full text-sm border border-border dark:border-darkborder rounded-lg px-3 py-2 bg-white dark:bg-darkgray focus:outline-none focus:ring-2 focus:ring-primary/30"
                 />
+                <p className="text-[11px] text-gray-400 mt-1">
+                  Zoom / Google Meet / Microsoft Teams adresini olduğu gibi yapıştır.
+                  Başında <span className="font-mono">https://</span> bulunmalı.
+                </p>
               </div>
             </div>
             <div className="flex gap-3 mt-5">
