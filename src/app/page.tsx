@@ -1,8 +1,23 @@
 "use client";
-import { useEffect } from "react";
+import { useContext, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import AuthContext from "@/app/context/AuthContext";
 
 export default function LandingPage() {
+  const router = useRouter();
+  const { user, isAuthenticated, isInitialized, logout } = useContext(
+    AuthContext,
+  ) as any;
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } finally {
+      router.refresh();
+    }
+  };
+
   useEffect(() => {
     if (!document.getElementById("landing-stylesheet")) {
       const link = document.createElement("link");
@@ -96,16 +111,57 @@ export default function LandingPage() {
                 İletişim
               </a>
             </li>
-            <li>
-              <Link href="/auth/login" className="nav-link">
-                Giriş
-              </Link>
-            </li>
-            <li>
-              <Link href="/auth/register" className="nav-link">
-                Kayıt Ol
-              </Link>
-            </li>
+            {isInitialized && isAuthenticated && user ? (
+              <>
+                <li>
+                  <Link
+                    href="/panel"
+                    className="nav-link nav-cta"
+                    style={{
+                      background:
+                        "linear-gradient(135deg,#7c3aed,#00bcd4)",
+                      color: "#fff",
+                      padding: "8px 18px",
+                      borderRadius: "999px",
+                      fontWeight: 600,
+                    }}
+                  >
+                    Yönetim Paneli
+                  </Link>
+                </li>
+                <li>
+                  <button
+                    onClick={handleLogout}
+                    className="nav-link"
+                    style={{
+                      background: "transparent",
+                      border: "1px solid rgba(124,58,237,0.35)",
+                      color: "#7c3aed",
+                      padding: "8px 16px",
+                      borderRadius: "999px",
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                      fontSize: "inherit",
+                    }}
+                  >
+                    Çıkış
+                  </button>
+                </li>
+              </>
+            ) : (
+              <>
+                <li>
+                  <Link href="/auth/login" className="nav-link">
+                    Giriş
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/auth/register" className="nav-link">
+                    Kayıt Ol
+                  </Link>
+                </li>
+              </>
+            )}
           </ul>
 
           <div className="menu-toggle" id="menuToggle">
