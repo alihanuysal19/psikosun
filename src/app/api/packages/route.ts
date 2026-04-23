@@ -2,10 +2,11 @@ import { prisma } from "@/utils/prisma";
 import { serializePrisma } from "@/utils/serialize";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const includeInactive = req.nextUrl.searchParams.get("includeInactive") === "1";
   try {
     const packages = await prisma.package.findMany({
-      where: { is_active: true },
+      where: includeInactive ? undefined : { is_active: true },
       orderBy: { price: "asc" },
     });
     return NextResponse.json({ data: serializePrisma(packages) });
