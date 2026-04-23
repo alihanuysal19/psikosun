@@ -8,6 +8,7 @@ import SimpleBar from "simplebar-react";
 import { Icon } from "@iconify/react";
 import AuthContext from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
+import SocialLinks from "@/app/components/shared/SocialLinks";
 
 const MobileSidebar = () => {
   const router = useRouter();
@@ -81,7 +82,7 @@ const MobileSidebar = () => {
           </SidebarItems>
         </SimpleBar>
 
-        <div className="px-5 pb-5 mt-auto">
+        <div className="px-5 pb-5 mt-auto space-y-3">
           <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800">
             <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 overflow-hidden">
               {user?.avatar ? (
@@ -101,6 +102,12 @@ const MobileSidebar = () => {
             <button onClick={handleLogout} className="text-gray-400 hover:text-error transition-colors">
               <Icon icon="tabler:logout" width={18} />
             </button>
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-gray-400 mb-2 px-1">
+              Bizi Takip Edin
+            </p>
+            <SocialLinks size={16} className="justify-between" />
           </div>
         </div>
       </Sidebar>
