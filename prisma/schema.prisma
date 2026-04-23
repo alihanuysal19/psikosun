@@ -179,25 +179,29 @@ model DiscoveryPost {
 model DiscoveryComment {
   id         Int      @id @default(autoincrement())
   post_id    Int
-  user_id    String
+  user_id    String?
+  guest_name String?
   content    String
   created_at DateTime @default(now())
 
   post DiscoveryPost @relation(fields: [post_id], references: [id], onDelete: Cascade)
-  user Profile       @relation(fields: [user_id], references: [id])
+  user Profile?      @relation(fields: [user_id], references: [id])
 
   @@index([post_id, created_at])
 }
 
 model DiscoveryLike {
+  id         Int      @id @default(autoincrement())
   post_id    Int
-  user_id    String
+  user_id    String?
+  anon_token String?
   created_at DateTime @default(now())
 
   post DiscoveryPost @relation(fields: [post_id], references: [id], onDelete: Cascade)
-  user Profile       @relation(fields: [user_id], references: [id])
+  user Profile?      @relation(fields: [user_id], references: [id])
 
-  @@id([post_id, user_id])
+  @@unique([post_id, user_id])
+  @@unique([post_id, anon_token])
   @@index([user_id])
 }
 

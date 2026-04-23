@@ -25,6 +25,21 @@ interface Post {
   liked_by_me: boolean;
 }
 
+const ANON_TOKEN_KEY = "psikosun.anon_token";
+
+function getAnonToken(): string {
+  if (typeof window === "undefined") return "";
+  let t = localStorage.getItem(ANON_TOKEN_KEY);
+  if (!t) {
+    t =
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `anon_${Math.random().toString(36).slice(2)}_${Date.now()}`;
+    localStorage.setItem(ANON_TOKEN_KEY, t);
+  }
+  return t;
+}
+
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
   const m = Math.floor(diff / 60000);
@@ -47,11 +62,12 @@ function isImage(url: string) {
   return /\.(jpe?g|png|webp|gif)(\?|$)/i.test(url);
 }
 
-export default function KesfetPage() {
-  const { user } = useContext(AuthContext) as any;
-  const role: "STUDENT" | "TEACHER" | "ADMIN" = user?.role ?? "STUDENT";
-  const canPost = role === "TEACHER" || role === "ADMIN";
+export default function KesfetPublicPage() {
+  const { user, isInitialized } = useContext(AuthContext) as any;
+  const role: PostAuthor["role"] = user?.role ?? "STUDENT";
+  const canPost = isInitialized && user?.id && role === "ADMIN";
 
+  const [anonToken, setAnonToken] = useState<string>("");
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [nextCursor, setNextCursor] = useState<number | null>(null);
@@ -64,17 +80,27 @@ export default function KesfetPage() {
   const [saving, setSaving] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const load = async (cursor?: number) => {
-    if (!user?.id) return;
-    const q = new URLSearchParams({ viewerId: user.id });
+  useEffect(() => {
+    setAnonToken(getAnonToken());
+  }, []);
+
+  const buildQuery = (cursor?: number) => {
+    const q = new URLSearchParams();
+    if (user?.id) q.set("viewerId", user.id);
+    else if (anonToken) q.set("anonToken", anonToken);
     if (cursor) q.set("cursor", String(cursor));
-    const res = await fetch(`/api/discovery?${q.toString()}`);
+    return q.toString();
+  };
+
+  const load = async (cursor?: number) => {
+    const res = await fetch(`/api/discovery?${buildQuery(cursor)}`);
     const { data, nextCursor: nc } = await res.json();
     return { data: data as Post[], nextCursor: nc as number | null };
   };
 
   useEffect(() => {
-    if (!user?.id) return;
+    if (!isInitialized) return;
+    if (!user?.id && !anonToken) return;
     setLoading(true);
     load().then((r) => {
       if (r) {
@@ -83,7 +109,8 @@ export default function KesfetPage() {
       }
       setLoading(false);
     });
-  }, [user?.id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, anonToken, isInitialized]);
 
   const loadMore = async () => {
     if (!nextCursor || loadingMore) return;
@@ -150,7 +177,6 @@ export default function KesfetPage() {
   };
 
   const toggleLike = async (postId: number) => {
-    if (!user?.id) return;
     setPosts((prev) =>
       prev.map((p) =>
         p.id === postId
@@ -163,7 +189,8 @@ export default function KesfetPage() {
       ),
     );
     try {
-      const res = await axios.post(`/api/discovery/${postId}/like`, { user_id: user.id });
+      const body = user?.id ? { user_id: user.id } : { anon_token: anonToken };
+      const res = await axios.post(`/api/discovery/${postId}/like`, body);
       setPosts((prev) =>
         prev.map((p) =>
           p.id === postId
@@ -188,6 +215,7 @@ export default function KesfetPage() {
   };
 
   const handleDelete = async (postId: number) => {
+    if (!user?.id) return;
     if (!confirm("Bu gönderiyi silmek istediğinize emin misiniz?")) return;
     try {
       await axios.delete(`/api/discovery/${postId}?userId=${user.id}`);
@@ -199,12 +227,12 @@ export default function KesfetPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <div className="mb-5 flex items-center justify-between">
+    <>
+      <div className="mb-5 flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-dark dark:text-white">Keşfet</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Topluluktan paylaşımlar, içerikler ve kaynaklar
+            Yönetim paylaşımları, içerikler ve duyurular — herkese açık
           </p>
         </div>
         {canPost && (
@@ -268,7 +296,7 @@ export default function KesfetPage() {
               </div>
             )}
 
-            <div className="flex items-center justify-between pt-2">
+            <div className="flex items-center justify-between pt-2 flex-wrap gap-2">
               <label className="inline-flex items-center gap-2 text-sm text-primary cursor-pointer hover:underline">
                 <Icon icon="tabler:paperclip" width={16} />
                 {uploading ? "Yükleniyor..." : "Medya/Dosya ekle"}
@@ -302,20 +330,12 @@ export default function KesfetPage() {
         <div className="text-center py-16 text-gray-400 bg-white dark:bg-darkgray rounded-xl border border-border dark:border-darkborder">
           <Icon icon="tabler:sparkles" width={40} className="mx-auto mb-2 opacity-40" />
           <p>Henüz paylaşım yok.</p>
-          {canPost && (
-            <button
-              onClick={() => setComposerOpen(true)}
-              className="text-primary text-sm hover:underline mt-2"
-            >
-              İlk paylaşımı yap
-            </button>
-          )}
         </div>
       ) : (
         <div className="space-y-4">
           {posts.map((p) => {
             const badge = roleBadge(p.author.role);
-            const canDelete = p.author.id === user?.id || role === "ADMIN";
+            const canDelete = !!user?.id && (p.author.id === user.id || role === "ADMIN");
             return (
               <article
                 key={p.id}
@@ -430,6 +450,6 @@ export default function KesfetPage() {
           )}
         </div>
       )}
-    </div>
+    </>
   );
 }

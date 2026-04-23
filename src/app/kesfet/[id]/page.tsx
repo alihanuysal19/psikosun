@@ -30,7 +30,24 @@ interface Comment {
   id: number;
   content: string;
   created_at: string;
-  user: Author;
+  guest_name: string | null;
+  user: Author | null;
+}
+
+const ANON_TOKEN_KEY = "psikosun.anon_token";
+const ANON_NAME_KEY = "psikosun.anon_name";
+
+function getAnonToken(): string {
+  if (typeof window === "undefined") return "";
+  let t = localStorage.getItem(ANON_TOKEN_KEY);
+  if (!t) {
+    t =
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `anon_${Math.random().toString(36).slice(2)}_${Date.now()}`;
+    localStorage.setItem(ANON_TOKEN_KEY, t);
+  }
+  return t;
 }
 
 function timeAgo(iso: string) {
@@ -55,13 +72,15 @@ function isImage(url: string) {
   return /\.(jpe?g|png|webp|gif)(\?|$)/i.test(url);
 }
 
-export default function KesfetDetailPage() {
+export default function KesfetDetailPublicPage() {
   const params = useParams();
   const router = useRouter();
   const id = Number(params?.id);
-  const { user } = useContext(AuthContext) as any;
-  const role: "STUDENT" | "TEACHER" | "ADMIN" = user?.role ?? "STUDENT";
+  const { user, isInitialized } = useContext(AuthContext) as any;
+  const role: Author["role"] = user?.role ?? "STUDENT";
 
+  const [anonToken, setAnonToken] = useState<string>("");
+  const [anonName, setAnonName] = useState<string>("");
   const [post, setPost] = useState<Post | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,10 +88,21 @@ export default function KesfetDetailPage() {
   const [posting, setPosting] = useState(false);
 
   useEffect(() => {
-    if (!id || !user?.id) return;
+    setAnonToken(getAnonToken());
+    if (typeof window !== "undefined") {
+      setAnonName(localStorage.getItem(ANON_NAME_KEY) ?? "");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!id || !isInitialized) return;
+    if (!user?.id && !anonToken) return;
     setLoading(true);
+    const q = new URLSearchParams();
+    if (user?.id) q.set("viewerId", user.id);
+    else if (anonToken) q.set("anonToken", anonToken);
     Promise.all([
-      fetch(`/api/discovery/${id}?viewerId=${user.id}`).then((r) => r.json()),
+      fetch(`/api/discovery/${id}?${q.toString()}`).then((r) => r.json()),
       fetch(`/api/discovery/${id}/comments`).then((r) => r.json()),
     ])
       .then(([pRes, cRes]) => {
@@ -80,17 +110,18 @@ export default function KesfetDetailPage() {
         setComments(cRes.data ?? []);
       })
       .finally(() => setLoading(false));
-  }, [id, user?.id]);
+  }, [id, user?.id, anonToken, isInitialized]);
 
   const toggleLike = async () => {
-    if (!post || !user?.id) return;
+    if (!post) return;
     setPost({
       ...post,
       liked_by_me: !post.liked_by_me,
       like_count: post.liked_by_me ? post.like_count - 1 : post.like_count + 1,
     });
     try {
-      const res = await axios.post(`/api/discovery/${post.id}/like`, { user_id: user.id });
+      const body = user?.id ? { user_id: user.id } : { anon_token: anonToken };
+      const res = await axios.post(`/api/discovery/${post.id}/like`, body);
       setPost((p) =>
         p ? { ...p, liked_by_me: res.data.liked, like_count: res.data.like_count } : p,
       );
@@ -109,18 +140,21 @@ export default function KesfetDetailPage() {
 
   const submitComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim() || !user?.id || !post) return;
+    if (!newComment.trim() || !post) return;
     setPosting(true);
     try {
-      const res = await axios.post(`/api/discovery/${post.id}/comments`, {
-        user_id: user.id,
-        content: newComment,
-      });
+      const body = user?.id
+        ? { user_id: user.id, content: newComment }
+        : { guest_name: anonName.trim() || null, content: newComment };
+      if (!user?.id && anonName.trim()) {
+        localStorage.setItem(ANON_NAME_KEY, anonName.trim());
+      }
+      const res = await axios.post(`/api/discovery/${post.id}/comments`, body);
       setComments((c) => [...c, res.data.data]);
       setPost((p) => (p ? { ...p, comment_count: p.comment_count + 1 } : p));
       setNewComment("");
-    } catch {
-      toast.error("Yorum eklenemedi.");
+    } catch (err: any) {
+      toast.error(err.response?.data?.error ?? "Yorum eklenemedi.");
     } finally {
       setPosting(false);
     }
@@ -162,21 +196,21 @@ export default function KesfetDetailPage() {
 
   if (!post) {
     return (
-      <div className="max-w-3xl mx-auto text-center py-16 text-gray-400">
+      <div className="text-center py-16 text-gray-400">
         <Icon icon="tabler:question-mark" width={40} className="mx-auto mb-2 opacity-40" />
         <p>Gönderi bulunamadı.</p>
         <Link href="/kesfet" className="text-primary text-sm hover:underline mt-2 inline-block">
-          Keşfet'e dön
+          Keşfet&apos;e dön
         </Link>
       </div>
     );
   }
 
   const badge = roleBadge(post.author.role);
-  const canDeletePost = post.author.id === user?.id || role === "ADMIN";
+  const canDeletePost = !!user?.id && (post.author.id === user.id || role === "ADMIN");
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <>
       <Link
         href="/kesfet"
         className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-primary mb-4"
@@ -271,51 +305,69 @@ export default function KesfetDetailPage() {
       <div className="mt-5 bg-white dark:bg-darkgray rounded-xl border border-border dark:border-darkborder p-5">
         <h3 className="font-semibold text-dark dark:text-white mb-3">Yorumlar</h3>
 
-        <form onSubmit={submitComment} className="flex gap-2 mb-4">
-          <input
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            placeholder="Yorumunu yaz..."
-            className="flex-1 text-sm border border-border dark:border-darkborder rounded-lg px-3 py-2 bg-white dark:bg-darkgray focus:outline-none focus:ring-2 focus:ring-primary/30"
-          />
-          <button
-            type="submit"
-            disabled={posting || !newComment.trim()}
-            className="bg-primary text-white text-sm px-4 py-2 rounded-lg hover:bg-primaryemphasis disabled:opacity-50"
-          >
-            {posting ? "..." : "Gönder"}
-          </button>
+        <form onSubmit={submitComment} className="space-y-2 mb-4">
+          {!user?.id && (
+            <input
+              value={anonName}
+              onChange={(e) => setAnonName(e.target.value)}
+              maxLength={60}
+              placeholder="Adın (opsiyonel)"
+              className="w-full text-sm border border-border dark:border-darkborder rounded-lg px-3 py-2 bg-white dark:bg-darkgray focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+          )}
+          <div className="flex gap-2">
+            <input
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="Yorumunu yaz..."
+              maxLength={2000}
+              className="flex-1 text-sm border border-border dark:border-darkborder rounded-lg px-3 py-2 bg-white dark:bg-darkgray focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+            <button
+              type="submit"
+              disabled={posting || !newComment.trim()}
+              className="bg-primary text-white text-sm px-4 py-2 rounded-lg hover:bg-primaryemphasis disabled:opacity-50"
+            >
+              {posting ? "..." : "Gönder"}
+            </button>
+          </div>
         </form>
 
         {comments.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-6">
-            İlk yorumu sen yap
-          </p>
+          <p className="text-sm text-gray-400 text-center py-6">İlk yorumu sen yap</p>
         ) : (
           <div className="space-y-3">
             {comments.map((c) => {
-              const cBadge = roleBadge(c.user.role);
-              const canDelete = c.user.id === user?.id || role === "ADMIN";
+              const cBadge = c.user
+                ? roleBadge(c.user.role)
+                : { label: "Misafir", color: "bg-gray-100 text-gray-500" };
+              const displayName = c.user?.full_name ?? c.guest_name ?? "Misafir";
+              const canDelete =
+                !!user?.id && (c.user?.id === user.id || role === "ADMIN");
               return (
                 <div key={c.id} className="flex gap-3">
                   <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden text-primary text-xs font-semibold flex-shrink-0">
-                    {c.user.avatar_url ? (
+                    {c.user?.avatar_url ? (
                       /* eslint-disable-next-line @next/next/no-img-element */
                       <img src={c.user.avatar_url} alt="" className="w-full h-full object-cover" />
                     ) : (
-                      c.user.full_name.charAt(0).toUpperCase()
+                      displayName.charAt(0).toUpperCase()
                     )}
                   </div>
                   <div className="flex-1 bg-gray-50 dark:bg-gray-800 rounded-lg px-3 py-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <p className="text-xs font-semibold text-dark dark:text-white">
-                          {c.user.full_name}
+                          {displayName}
                         </p>
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${cBadge.color}`}>
+                        <span
+                          className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${cBadge.color}`}
+                        >
                           {cBadge.label}
                         </span>
-                        <span className="text-[10px] text-gray-400">{timeAgo(c.created_at)}</span>
+                        <span className="text-[10px] text-gray-400">
+                          {timeAgo(c.created_at)}
+                        </span>
                       </div>
                       {canDelete && (
                         <button
@@ -337,6 +389,6 @@ export default function KesfetDetailPage() {
           </div>
         )}
       </div>
-    </div>
+    </>
   );
 }

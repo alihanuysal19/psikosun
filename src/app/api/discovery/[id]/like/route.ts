@@ -7,38 +7,48 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!postId) return NextResponse.json({ error: "Geçersiz id" }, { status: 400 });
 
   try {
-    const body = await req.json();
-    const { user_id } = body;
-    if (!user_id) return NextResponse.json({ error: "Eksik parametre" }, { status: 400 });
+    const body = await req.json().catch(() => ({}));
+    const userId: string | null = body.user_id || null;
+    const anonToken: string | null = body.anon_token || null;
 
-    const existing = await prisma.discoveryLike.findUnique({
-      where: { post_id_user_id: { post_id: postId, user_id } },
-    });
+    if (!userId && !anonToken) {
+      return NextResponse.json({ error: "Eksik parametre" }, { status: 400 });
+    }
+
+    const where = userId
+      ? { post_id_user_id: { post_id: postId, user_id: userId } }
+      : { post_id_anon_token: { post_id: postId, anon_token: anonToken! } };
+
+    const existing = await prisma.discoveryLike.findUnique({ where: where as any });
 
     if (existing) {
-      await prisma.discoveryLike.delete({
-        where: { post_id_user_id: { post_id: postId, user_id } },
-      });
+      await prisma.discoveryLike.delete({ where: { id: existing.id } });
     } else {
       await prisma.discoveryLike.create({
-        data: { post_id: postId, user_id },
+        data: {
+          post_id: postId,
+          user_id: userId,
+          anon_token: userId ? null : anonToken,
+        },
       });
 
-      const post = await prisma.discoveryPost.findUnique({
-        where: { id: postId },
-        select: { author_id: true },
-      });
-      if (post && post.author_id !== user_id) {
-        await prisma.notification
-          .create({
-            data: {
-              user_id: post.author_id,
-              actor_id: user_id,
-              type: "DISCOVERY_LIKE",
-              post_id: postId,
-            },
-          })
-          .catch((e) => console.error("notification create failed:", e));
+      if (userId) {
+        const post = await prisma.discoveryPost.findUnique({
+          where: { id: postId },
+          select: { author_id: true },
+        });
+        if (post && post.author_id !== userId) {
+          await prisma.notification
+            .create({
+              data: {
+                user_id: post.author_id,
+                actor_id: userId,
+                type: "DISCOVERY_LIKE",
+                post_id: postId,
+              },
+            })
+            .catch((e) => console.error("notification create failed:", e));
+        }
       }
     }
 

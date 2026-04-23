@@ -4,20 +4,28 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: idStr } = await params;
   const viewerId = req.nextUrl.searchParams.get("viewerId");
+  const anonToken = req.nextUrl.searchParams.get("anonToken");
   const id = parseInt(idStr);
   if (!id) return NextResponse.json({ error: "Geçersiz id" }, { status: 400 });
 
   try {
+    const likeFilter = viewerId
+      ? { user_id: viewerId }
+      : anonToken
+        ? { anon_token: anonToken }
+        : null;
+
     const post = await prisma.discoveryPost.findUnique({
       where: { id },
       include: {
         author: { select: { id: true, full_name: true, role: true, avatar_url: true } },
         _count: { select: { comments: true, likes: true } },
-        ...(viewerId
+        ...(likeFilter
           ? {
               likes: {
-                where: { user_id: viewerId },
-                select: { user_id: true },
+                where: likeFilter,
+                select: { id: true },
+                take: 1,
               },
             }
           : {}),
@@ -30,7 +38,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         ...post,
         comment_count: (post as any)._count.comments,
         like_count: (post as any)._count.likes,
-        liked_by_me: viewerId ? ((post as any).likes?.length ?? 0) > 0 : false,
+        liked_by_me: likeFilter ? ((post as any).likes?.length ?? 0) > 0 : false,
       },
     });
   } catch (error) {

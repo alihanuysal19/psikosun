@@ -28,9 +28,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   try {
     const body = await req.json();
-    const { user_id, content } = body;
-    if (!user_id || !content?.trim())
-      return NextResponse.json({ error: "Eksik alan" }, { status: 400 });
+    const { user_id, guest_name, content } = body;
+    const trimmed = typeof content === "string" ? content.trim() : "";
+    if (!trimmed)
+      return NextResponse.json({ error: "Yorum boş olamaz" }, { status: 400 });
+    if (trimmed.length > 2000)
+      return NextResponse.json({ error: "Yorum çok uzun (max 2000)" }, { status: 400 });
 
     const post = await prisma.discoveryPost.findUnique({
       where: { id: postId },
@@ -38,14 +41,24 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     });
     if (!post) return NextResponse.json({ error: "Gönderi bulunamadı" }, { status: 404 });
 
+    const cleanGuestName =
+      typeof guest_name === "string" && guest_name.trim()
+        ? guest_name.trim().slice(0, 60)
+        : null;
+
     const comment = await prisma.discoveryComment.create({
-      data: { post_id: postId, user_id, content: content.trim() },
+      data: {
+        post_id: postId,
+        user_id: user_id || null,
+        guest_name: user_id ? null : cleanGuestName,
+        content: trimmed,
+      },
       include: {
         user: { select: { id: true, full_name: true, role: true, avatar_url: true } },
       },
     });
 
-    if (post.author_id !== user_id) {
+    if (user_id && post.author_id !== user_id) {
       await prisma.notification
         .create({
           data: {

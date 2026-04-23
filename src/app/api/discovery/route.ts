@@ -5,10 +5,17 @@ const PAGE_SIZE = 10;
 
 export async function GET(req: NextRequest) {
   const viewerId = req.nextUrl.searchParams.get("viewerId");
+  const anonToken = req.nextUrl.searchParams.get("anonToken");
   const cursorParam = req.nextUrl.searchParams.get("cursor");
   const cursor = cursorParam ? parseInt(cursorParam) : undefined;
 
   try {
+    const likeFilter = viewerId
+      ? { user_id: viewerId }
+      : anonToken
+        ? { anon_token: anonToken }
+        : null;
+
     const posts = await prisma.discoveryPost.findMany({
       take: PAGE_SIZE + 1,
       ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
@@ -16,11 +23,12 @@ export async function GET(req: NextRequest) {
       include: {
         author: { select: { id: true, full_name: true, role: true, avatar_url: true } },
         _count: { select: { comments: true, likes: true } },
-        ...(viewerId
+        ...(likeFilter
           ? {
               likes: {
-                where: { user_id: viewerId },
-                select: { user_id: true },
+                where: likeFilter,
+                select: { id: true },
+                take: 1,
               },
             }
           : {}),
@@ -38,7 +46,7 @@ export async function GET(req: NextRequest) {
       updated_at: p.updated_at,
       comment_count: p._count.comments,
       like_count: p._count.likes,
-      liked_by_me: viewerId ? (p.likes?.length ?? 0) > 0 : false,
+      liked_by_me: likeFilter ? (p.likes?.length ?? 0) > 0 : false,
     }));
 
     return NextResponse.json({
@@ -64,8 +72,11 @@ export async function POST(req: NextRequest) {
       where: { id: author_id },
       select: { role: true },
     });
-    if (!author || (author.role !== "TEACHER" && author.role !== "ADMIN")) {
-      return NextResponse.json({ error: "Paylaşım yetkiniz yok" }, { status: 403 });
+    if (!author || author.role !== "ADMIN") {
+      return NextResponse.json(
+        { error: "Sadece yönetim paylaşım yapabilir" },
+        { status: 403 },
+      );
     }
 
     const post = await prisma.discoveryPost.create({
