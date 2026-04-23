@@ -2,6 +2,15 @@ import { prisma } from "@/utils/prisma";
 import { serializePrisma } from "@/utils/serialize";
 import { NextRequest, NextResponse } from "next/server";
 
+async function isAdmin(userId: string | null | undefined): Promise<boolean> {
+  if (!userId) return false;
+  const u = await prisma.profile.findUnique({
+    where: { id: userId },
+    select: { role: true },
+  });
+  return u?.role === "ADMIN";
+}
+
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -14,6 +23,10 @@ export async function PATCH(
     }
 
     const body = await req.json();
+    if (!(await isAdmin(body.caller_id))) {
+      return NextResponse.json({ error: "Yetkisiz" }, { status: 403 });
+    }
+
     const data: Record<string, unknown> = {};
     if (typeof body.name === "string" && body.name.trim()) data.name = body.name.trim();
     if (typeof body.description === "string") data.description = body.description;
@@ -46,7 +59,7 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
@@ -54,6 +67,11 @@ export async function DELETE(
     const pkgId = parseInt(id);
     if (Number.isNaN(pkgId)) {
       return NextResponse.json({ error: "Geçersiz paket id" }, { status: 400 });
+    }
+
+    const callerId = req.nextUrl.searchParams.get("callerId");
+    if (!(await isAdmin(callerId))) {
+      return NextResponse.json({ error: "Yetkisiz" }, { status: 403 });
     }
 
     const inUse = await prisma.userPackage.count({ where: { package_id: pkgId } });

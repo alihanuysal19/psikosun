@@ -189,7 +189,9 @@ export default function KesfetPublicPage() {
       ),
     );
     try {
-      const body = user?.id ? { user_id: user.id } : { anon_token: anonToken };
+      const body: { user_id?: string; anon_token?: string } = {};
+      if (user?.id) body.user_id = user.id;
+      if (anonToken) body.anon_token = anonToken;
       const res = await axios.post(`/api/discovery/${postId}/like`, body);
       setPosts((prev) =>
         prev.map((p) =>

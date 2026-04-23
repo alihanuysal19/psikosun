@@ -15,24 +15,30 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: "Eksik parametre" }, { status: 400 });
     }
 
-    const where = userId
-      ? { post_id_user_id: { post_id: postId, user_id: userId } }
-      : { post_id_anon_token: { post_id: postId, anon_token: anonToken! } };
+    let liked: boolean;
 
-    const existing = await prisma.discoveryLike.findUnique({ where: where as any });
-
-    if (existing) {
-      await prisma.discoveryLike.delete({ where: { id: existing.id } });
-    } else {
-      await prisma.discoveryLike.create({
-        data: {
-          post_id: postId,
-          user_id: userId,
-          anon_token: userId ? null : anonToken,
-        },
+    if (userId) {
+      const existing = await prisma.discoveryLike.findUnique({
+        where: { post_id_user_id: { post_id: postId, user_id: userId } },
       });
 
-      if (userId) {
+      if (existing) {
+        await prisma.discoveryLike.delete({ where: { id: existing.id } });
+        liked = false;
+      } else {
+        await prisma.discoveryLike.create({
+          data: { post_id: postId, user_id: userId },
+        });
+        liked = true;
+
+        if (anonToken) {
+          await prisma.discoveryLike
+            .delete({
+              where: { post_id_anon_token: { post_id: postId, anon_token: anonToken } },
+            })
+            .catch(() => {});
+        }
+
         const post = await prisma.discoveryPost.findUnique({
           where: { id: postId },
           select: { author_id: true },
@@ -50,10 +56,24 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
             .catch((e) => console.error("notification create failed:", e));
         }
       }
+    } else {
+      const existing = await prisma.discoveryLike.findUnique({
+        where: { post_id_anon_token: { post_id: postId, anon_token: anonToken! } },
+      });
+
+      if (existing) {
+        await prisma.discoveryLike.delete({ where: { id: existing.id } });
+        liked = false;
+      } else {
+        await prisma.discoveryLike.create({
+          data: { post_id: postId, anon_token: anonToken },
+        });
+        liked = true;
+      }
     }
 
     const count = await prisma.discoveryLike.count({ where: { post_id: postId } });
-    return NextResponse.json({ liked: !existing, like_count: count });
+    return NextResponse.json({ liked, like_count: count });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Sunucu hatası" }, { status: 500 });

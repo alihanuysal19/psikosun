@@ -120,7 +120,9 @@ export default function KesfetDetailPublicPage() {
       like_count: post.liked_by_me ? post.like_count - 1 : post.like_count + 1,
     });
     try {
-      const body = user?.id ? { user_id: user.id } : { anon_token: anonToken };
+      const body: { user_id?: string; anon_token?: string } = {};
+      if (user?.id) body.user_id = user.id;
+      if (anonToken) body.anon_token = anonToken;
       const res = await axios.post(`/api/discovery/${post.id}/like`, body);
       setPost((p) =>
         p ? { ...p, liked_by_me: res.data.liked, like_count: res.data.like_count } : p,

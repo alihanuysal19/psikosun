@@ -1,5 +1,12 @@
 import { prisma } from "@/utils/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { checkRateLimit, getClientIp } from "@/utils/rateLimit";
+
+const ANON_COMMENT_RULES = [
+  { windowMs: 60_000, max: 3 },
+  { windowMs: 10 * 60_000, max: 10 },
+  { windowMs: 60 * 60_000, max: 30 },
+];
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: idStr } = await params;
@@ -34,6 +41,22 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: "Yorum boş olamaz" }, { status: 400 });
     if (trimmed.length > 2000)
       return NextResponse.json({ error: "Yorum çok uzun (max 2000)" }, { status: 400 });
+
+    if (!user_id) {
+      const ip = getClientIp(req);
+      const rl = checkRateLimit(`anon_comment:${ip}`, ANON_COMMENT_RULES);
+      if (!rl.allowed) {
+        return NextResponse.json(
+          {
+            error: `Çok hızlı yorum yazıyorsunuz, lütfen ${rl.retryAfterSec} saniye bekleyin.`,
+          },
+          {
+            status: 429,
+            headers: { "Retry-After": String(rl.retryAfterSec ?? 60) },
+          },
+        );
+      }
+    }
 
     const post = await prisma.discoveryPost.findUnique({
       where: { id: postId },

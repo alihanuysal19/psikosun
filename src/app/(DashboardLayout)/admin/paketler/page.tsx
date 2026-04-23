@@ -1,9 +1,10 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { formatMoney } from "@/utils/format";
+import AuthContext from "@/app/context/AuthContext";
 
 interface Package {
   id: number;
@@ -17,6 +18,8 @@ interface Package {
 const emptyForm = { name: "", description: "", lesson_count: "", price: "" };
 
 export default function AdminPaketlerPage() {
+  const { user } = useContext(AuthContext) as any;
+  const adminId: string | undefined = user?.id;
   const [packages, setPackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -26,8 +29,9 @@ export default function AdminPaketlerPage() {
   const [busyId, setBusyId] = useState<number | null>(null);
 
   const fetchPackages = () => {
+    if (!adminId) return;
     setLoading(true);
-    fetch("/api/packages?includeInactive=1")
+    fetch(`/api/packages?includeInactive=1&adminId=${adminId}`)
       .then((r) => r.json())
       .then(({ data }) => {
         setPackages(data || []);
@@ -36,8 +40,9 @@ export default function AdminPaketlerPage() {
   };
 
   useEffect(() => {
-    fetchPackages();
-  }, []);
+    if (adminId) fetchPackages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [adminId]);
 
   const openCreate = () => {
     setEditing(null);
@@ -73,10 +78,10 @@ export default function AdminPaketlerPage() {
     setSaving(true);
     try {
       if (editing) {
-        await axios.patch(`/api/packages/${editing.id}`, form);
+        await axios.patch(`/api/packages/${editing.id}`, { ...form, caller_id: adminId });
         toast.success("Paket güncellendi.");
       } else {
-        await axios.post("/api/packages", form);
+        await axios.post("/api/packages", { ...form, caller_id: adminId });
         toast.success("Paket eklendi.");
       }
       closeForm();
@@ -91,7 +96,10 @@ export default function AdminPaketlerPage() {
   const toggleActive = async (pkg: Package) => {
     setBusyId(pkg.id);
     try {
-      await axios.patch(`/api/packages/${pkg.id}`, { is_active: !pkg.is_active });
+      await axios.patch(`/api/packages/${pkg.id}`, {
+        is_active: !pkg.is_active,
+        caller_id: adminId,
+      });
       setPackages((prev) =>
         prev.map((p) => (p.id === pkg.id ? { ...p, is_active: !pkg.is_active } : p)),
       );
@@ -112,7 +120,7 @@ export default function AdminPaketlerPage() {
       return;
     setBusyId(pkg.id);
     try {
-      const res = await axios.delete(`/api/packages/${pkg.id}`);
+      const res = await axios.delete(`/api/packages/${pkg.id}?callerId=${adminId}`);
       if (res.data.soft) {
         toast.info(res.data.message);
       } else {
