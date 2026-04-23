@@ -1,14 +1,56 @@
 "use client";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import AuthContext from "@/app/context/AuthContext";
+import { formatMoney } from "@/utils/format";
+
+interface PublicPackage {
+  id: number;
+  name: string;
+  description: string | null;
+  lesson_count: number;
+  price: string | number;
+}
+
+const PACKAGE_ICONS = ["⚡", "🎯", "🧭", "💎", "🌟", "🚀", "✨", "🔥"];
+
+function packageLines(description: string | null, lessonCount: number): string[] {
+  if (description && description.trim()) {
+    return description
+      .split(/\r?\n/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+  return [`🗓️ ${lessonCount} birebir görüşme hakkı`];
+}
 
 export default function LandingPage() {
   const router = useRouter();
   const { user, isAuthenticated, isInitialized, logout } = useContext(
     AuthContext,
   ) as any;
+
+  const [packages, setPackages] = useState<PublicPackage[]>([]);
+  const [packagesLoading, setPackagesLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/packages")
+      .then((r) => r.json())
+      .then(({ data }) => {
+        if (!cancelled) setPackages(data || []);
+      })
+      .catch(() => {
+        if (!cancelled) setPackages([]);
+      })
+      .finally(() => {
+        if (!cancelled) setPackagesLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -342,80 +384,67 @@ export default function LandingPage() {
           </p>
         </div>
         <div className="stats-grid">
-          <div className="stat-card package-card">
-            <div className="stat-icon">⚡</div>
-            <div className="stat-number">
-              600 <br />
-              TL
+          {packagesLoading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="stat-card package-card" style={{ opacity: 0.5 }}>
+                <div
+                  className="stat-icon"
+                  style={{ background: "rgba(124,58,237,0.15)" }}
+                />
+                <div className="stat-number" style={{ height: 40 }} />
+                <div
+                  className="stat-label"
+                  style={{
+                    height: 14,
+                    background: "rgba(124,58,237,0.1)",
+                    borderRadius: 6,
+                    margin: "8px auto",
+                    width: "60%",
+                  }}
+                />
+              </div>
+            ))
+          ) : packages.length === 0 ? (
+            <div
+              className="stat-card package-card"
+              style={{ gridColumn: "1 / -1", textAlign: "center" }}
+            >
+              <div className="stat-icon">📭</div>
+              <div className="stat-label">Henüz aktif paket yok</div>
+              <p className="stat-description">
+                Yakında yeni paketler tanımlanacak. Bu sırada bizimle iletişime
+                geçebilirsiniz.
+              </p>
+              <br />
+              <a href="#contact" className="submit-btn package-btn">
+                İletişim
+              </a>
             </div>
-            <div className="stat-label">Hızlı Başlangıç Paketi</div>
-            <p className="stat-description">
-              🗓️ Haftada 1 birebir görüşme
-              <br />
-              🎯 Başlangıç hedef analizi
-              <br />
-              🧭 Temel yönlendirme ve yol haritası
-              <br />
-              ✨ Rehberlik sürecine sağlam giriş
-            </p>
-            <br />
-            <Link href="/auth/register" className="submit-btn package-btn">
-              🛒 Satın Al
-            </Link>
-          </div>
-          <div className="stat-card package-card">
-            <div className="stat-icon">🎯</div>
-            <div className="stat-number">1.000 TL</div>
-            <div className="stat-label">Akademik Destek Paketi</div>
-            <p className="stat-description">
-              🗓️ Haftada 2 birebir görüşme
-              <br />
-              📌 Düzenli akademik takip
-              <br />
-              📊 Geri bildirim ve gelişim analizi
-              <br />
-              🔥 Disiplin ve sürdürülebilir motivasyon
-            </p>
-            <br />
-            <Link href="/auth/register" className="submit-btn package-btn">
-              🛒 Satın Al
-            </Link>
-          </div>
-          <div className="stat-card package-card">
-            <div className="stat-icon">🧭</div>
-            <div className="stat-number">2.000 TL</div>
-            <div className="stat-label">Süreç Odaklı Plan</div>
-            <p className="stat-description">
-              🗓️ Ayda 4 birebir görüşme
-              <br />
-              🗂️ Kişiye özel çalışma programı
-              <br />
-              📈 Süreç takibi ve motivasyon desteği
-              <br />
-              🧠 Kaygı ve performans yönetimi
-            </p>
-            <br />
-            <br />
-            <Link href="/auth/register" className="submit-btn package-btn">
-              🛒 Satın Al
-            </Link>
-          </div>
-          <div className="stat-card package-card">
-            <div className="stat-icon">💎</div>
-            <div className="stat-number">3.500 TL</div>
-            <div className="stat-label">Tam Kapsamlı Dönüşüm</div>
-            <p className="stat-description">
-              🗓️ Ayda 8 yoğun birebir görüşme
-              <br />
-              🔥 Kaygı, motivasyon ve performans yönetimi
-              <br />
-              🏆 Hedefe odaklı profesyonel rehberlik
-            </p>
-            <br />
-            <Link href="/auth/register" className="submit-btn package-btn">
-              🛒 Satın Al
-            </Link>
-          </div>
+          ) : (
+            packages.map((pkg, idx) => {
+              const lines = packageLines(pkg.description, pkg.lesson_count);
+              const icon = PACKAGE_ICONS[idx % PACKAGE_ICONS.length];
+              return (
+                <div key={pkg.id} className="stat-card package-card">
+                  <div className="stat-icon">{icon}</div>
+                  <div className="stat-number">{formatMoney(pkg.price)}</div>
+                  <div className="stat-label">{pkg.name}</div>
+                  <p className="stat-description">
+                    {lines.map((line, i) => (
+                      <span key={i}>
+                        {line}
+                        {i < lines.length - 1 && <br />}
+                      </span>
+                    ))}
+                  </p>
+                  <br />
+                  <Link href="/auth/register" className="submit-btn package-btn">
+                    🛒 Satın Al
+                  </Link>
+                </div>
+              );
+            })
+          )}
         </div>
       </section>
 
@@ -472,11 +501,11 @@ export default function LandingPage() {
                 <p>Gökçeağaç Mh. Merkez Sk. No:51, Bafra / Samsun</p>
               </div>
             </a>
-            <a href="mailto:psikosun@gmail.com" className="info-item">
+            <a href="mailto:info@psikosun.com" className="info-item">
               <div className="info-icon">📧</div>
               <div className="info-text">
                 <h4>E-posta</h4>
-                <p>psikosun@gmail.com</p>
+                <p>info@psikosun.com</p>
               </div>
             </a>
             <a href="tel:+905395769930" className="info-item">
@@ -500,6 +529,54 @@ export default function LandingPage() {
                 <p>Paketleri inceleyin ve görüşme planlayın</p>
               </div>
             </Link>
+            <a
+              href="https://www.instagram.com/psikosun"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="info-item"
+            >
+              <div className="info-icon">📷</div>
+              <div className="info-text">
+                <h4>Instagram</h4>
+                <p>@psikosun</p>
+              </div>
+            </a>
+            <a
+              href="https://www.facebook.com/profile.php?id=61578309932880"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="info-item"
+            >
+              <div className="info-icon">📘</div>
+              <div className="info-text">
+                <h4>Facebook</h4>
+                <p>PSIKOSUN sayfamız</p>
+              </div>
+            </a>
+            <a
+              href="https://www.tiktok.com/@psikosun"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="info-item"
+            >
+              <div className="info-icon">🎵</div>
+              <div className="info-text">
+                <h4>TikTok</h4>
+                <p>@psikosun</p>
+              </div>
+            </a>
+            <a
+              href="https://www.linkedin.com/company/psikosun/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="info-item"
+            >
+              <div className="info-icon">💼</div>
+              <div className="info-text">
+                <h4>LinkedIn</h4>
+                <p>PSIKOSUN şirket sayfası</p>
+              </div>
+            </a>
           </div>
 
           <form className="contact-form" id="contactForm">
@@ -551,23 +628,63 @@ export default function LandingPage() {
               dayanıklılığını birlikte destekleyen, etik ve güven odaklı danışmanlık platformu.
             </p>
             <div className="footer-social">
-              <a href="mailto:psikosun@gmail.com" className="social-icon" aria-label="E-posta">
-                ✉️
-              </a>
-              <a href="tel:+905395769930" className="social-icon" aria-label="Telefon">
-                📞
+              <a
+                href="https://www.instagram.com/psikosun"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="social-icon"
+                aria-label="Instagram"
+                title="Instagram"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.42.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41-.56-.22-.96-.48-1.38-.9-.42-.42-.68-.82-.9-1.38-.16-.42-.36-1.06-.41-2.23C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.34 4.14.63c-.79.3-1.46.71-2.13 1.38C1.34 2.68.93 3.35.63 4.14.34 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12s.01 3.67.07 4.95c.06 1.27.27 2.15.56 2.91.3.79.71 1.46 1.38 2.13.67.67 1.34 1.08 2.13 1.38.76.29 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24s3.67-.01 4.95-.07c1.27-.06 2.15-.27 2.91-.56.79-.3 1.46-.71 2.13-1.38.67-.67 1.08-1.34 1.38-2.13.29-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.27-2.15-.56-2.91-.3-.79-.71-1.46-1.38-2.13C21.32 1.34 20.65.93 19.86.63c-.76-.29-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0zm0 5.84a6.16 6.16 0 100 12.32 6.16 6.16 0 000-12.32zm0 10.16a4 4 0 110-8 4 4 0 010 8zm6.41-11.85a1.44 1.44 0 100 2.88 1.44 1.44 0 000-2.88z" />
+                </svg>
               </a>
               <a
-                href="https://maps.google.com/?q=G%C3%B6k%C3%A7ea%C4%9Fa%C3%A7%20Mh.%20Merkez%20Sk.%20No%3A51%20Bafra%20Samsun"
+                href="https://www.facebook.com/profile.php?id=61578309932880"
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="social-icon"
-                aria-label="Konum"
+                aria-label="Facebook"
+                title="Facebook"
               >
-                📍
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M24 12.07C24 5.41 18.63 0 12 0S0 5.41 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.69.24 2.69.24v2.97h-1.52c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.1 24 18.1 24 12.07" />
+                </svg>
               </a>
-              <a href="#contact" className="social-icon" aria-label="İletişim Formu">
-                💬
+              <a
+                href="https://www.tiktok.com/@psikosun"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="social-icon"
+                aria-label="TikTok"
+                title="TikTok"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005.8 20.1a6.34 6.34 0 0010.86-4.43V8.66a8.16 8.16 0 004.77 1.52V6.73a4.85 4.85 0 01-1.84-.04z" />
+                </svg>
+              </a>
+              <a
+                href="https://www.linkedin.com/company/psikosun/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="social-icon"
+                aria-label="LinkedIn"
+                title="LinkedIn"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.13 1.45-2.13 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.26 2.37 4.26 5.45v6.29zM5.34 7.43a2.06 2.06 0 11.04-4.12 2.06 2.06 0 01-.04 4.12zM3.56 20.45h3.56V9H3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0z" />
+                </svg>
+              </a>
+              <a
+                href="mailto:info@psikosun.com"
+                className="social-icon"
+                aria-label="E-posta"
+                title="E-posta"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+                </svg>
               </a>
             </div>
           </div>
@@ -586,7 +703,7 @@ export default function LandingPage() {
               <a href="#about">Hakkımızda</a>
               <a href="#stats">Dersler</a>
               <a href="#contact">İletişim</a>
-              <a href="mailto:psikosun@gmail.com">Destek</a>
+              <a href="mailto:info@psikosun.com">Destek</a>
             </div>
           </div>
           <div className="footer-section">
@@ -604,8 +721,8 @@ export default function LandingPage() {
           <div className="footer-credits">
             <span>Adres: Gökçeağaç Mh. Merkez Sk. No:51, Bafra / Samsun</span>
             <span style={{ marginLeft: 10 }}>•</span>
-            <a href="mailto:psikosun@gmail.com" rel="nofollow">
-              psikosun@gmail.com
+            <a href="mailto:info@psikosun.com" rel="nofollow">
+              info@psikosun.com
             </a>
           </div>
         </div>
