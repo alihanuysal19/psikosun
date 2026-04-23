@@ -149,6 +149,11 @@ export default function LandingPage() {
               </a>
             </li>
             <li>
+              <Link href="/kesfet" className="nav-link">
+                Keşfet
+              </Link>
+            </li>
+            <li>
               <a href="#contact" className="nav-link">
                 İletişim
               </a>
@@ -701,6 +706,7 @@ export default function LandingPage() {
             <h4>Kurumsal</h4>
             <div className="footer-links">
               <a href="#about">Hakkımızda</a>
+              <Link href="/kesfet">Keşfet</Link>
               <a href="#stats">Dersler</a>
               <a href="#contact">İletişim</a>
               <a href="mailto:info@psikosun.com">Destek</a>
