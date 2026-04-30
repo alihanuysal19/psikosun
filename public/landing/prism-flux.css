@@ -1782,18 +1782,17 @@ video {
   transform: rotate(20deg);
 }
 
-/* Marka load animation — sayfa açılışında soft fade-in,
-   landing'in mevcut loader'ı kalktığında mark'ın varlığı hissedilsin */
+/* Marka load animation — sayfa açılışında soft fade-in.
+   ÖNEMLİ: filter property animation'a DAHIL DEĞIL — drop-shadow glow'u
+   ezmemesi için sadece opacity + transform animate ediliyor. */
 @keyframes brandFadeIn {
   from {
     opacity: 0;
     transform: translateY(-4px) scale(0.97);
-    filter: blur(4px);
   }
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
-    filter: blur(0);
   }
 }
 .logo-wordmark,

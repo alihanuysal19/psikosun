@@ -1,38 +1,54 @@
 """
-Marka asset'lerini hazırlar:
-  - Siyah arkaplanı (~RGB ≤ 18) tam transparent yapar (alpha = 0)
-  - Koyu kenar piksellerine soft alpha uygular (ramp 18→32) — halo bırakmaz
-  - Üç boyut çıktı: full (orijinal), 512, 256, 128, 64, 32, 16
-  - Favicon için ayrıca .ico (multi-size: 16/32/48/64) üretir
+Marka asset'lerini hazirlar:
+  - "Premultiplied unmultiply" ile siyah arkaplani temizler:
+    alpha = max(r,g,b), kenar pikselleri renk doygunlugunu koruyarak
+    yari-saydam isina (glow) cevrilir; gri halo birakmaz
+  - Boyut seti: full (orijinal), 512, 256, 128, 64, 32, 16
+  - Favicon icin ayrica .ico (multi-size: 16/32/48/64)
 
 Kaynak JPG'ler: public/branding/{psikosun-icon,psikosun-wordmark,psikosun-mark}.jpg
 """
 from pathlib import Path
 from PIL import Image
+import numpy as np
+
 
 ROOT = Path(__file__).resolve().parent.parent
 BRAND = ROOT / "public" / "branding"
 
-THRESH_FULL = 18   # bu ve altı = tam saydam
-THRESH_SOFT = 32   # bu ve üstü = tam opak
-RAMP = THRESH_SOFT - THRESH_FULL
+# Cok dusuk parlaklikta pikselleri tamamen kes (JPG salt-and-pepper noise)
+NOISE_FLOOR = 6
 
 
 def black_to_alpha(src_path: Path) -> Image.Image:
-    img = Image.open(src_path).convert("RGBA")
-    px = img.load()
-    w, h = img.size
-    for y in range(h):
-        for x in range(w):
-            r, g, b, _ = px[x, y]
-            v = max(r, g, b)
-            if v <= THRESH_FULL:
-                px[x, y] = (r, g, b, 0)
-            elif v < THRESH_SOFT:
-                a = int(round((v - THRESH_FULL) / RAMP * 255))
-                px[x, y] = (r, g, b, a)
-            # else: full opaque, leave alpha 255
-    return img
+    """JPG'de siyah arkaplani temiz alpha kanalina cevir.
+
+    Yaklasim: alpha = max(r,g,b). Bu siyahi tam saydam (alpha=0), beyazi
+    tam opak (alpha=255) yapar. Kenar pikselleri (orn. cyan-on-black blend
+    sonucu rgb=40,80,80) "premultiplied unmultiply" ile rengin orijinal
+    saturasyonuna cikarilir: r' = r*255/alpha. Boylelikle yari-saydam
+    cyan/magenta glow olarak goruntu doruk korur, gri halo birakmaz.
+    """
+    img = Image.open(src_path).convert("RGB")
+    arr = np.asarray(img, dtype=np.uint8).astype(np.float32)  # HxWx3
+
+    # alpha = max(r,g,b)
+    alpha = arr.max(axis=2)  # HxW
+
+    # Cok dusuk parlaklik = pure noise -> tamamen kes
+    alpha[alpha < NOISE_FLOOR] = 0.0
+
+    # Premultiplied unmultiply: rgb'yi alpha'ya bol, renk satursyonunu koru
+    safe_alpha = np.where(alpha > 0, alpha, 1.0)  # bolme hatasini onle
+    factor = 255.0 / safe_alpha  # HxW
+    rgb = (arr * factor[..., None]).clip(0, 255)
+
+    # alpha=0 olan pikseller icin rgb'yi de sifirla (defensive)
+    mask0 = alpha == 0
+    rgb[mask0] = 0.0
+
+    out = np.dstack([rgb.astype(np.uint8), alpha.astype(np.uint8)])
+    return Image.fromarray(out, mode="RGBA")
 
 
 def trim_to_content(rgba: Image.Image, padding: int = 8) -> Image.Image:
