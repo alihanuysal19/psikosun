@@ -34,13 +34,15 @@ export const metadata: Metadata = {
     "PSIKOSUN — PDR temelli online rehberlik ve danışmanlık platformu. Akademik hedefler ve psikolojik dayanıklılığı birlikte destekler.",
   applicationName: "PSIKOSUN",
   icons: {
-    // Beyaz arka planlı SVG (tercih edilir) + logo.png fallback (Safari eski sürümler için)
+    // Yeni marka iconu - alpha kanali tasiyan PNG seti + multi-size .ico
     icon: [
-      { url: "/favicon.svg", type: "image/svg+xml" },
-      { url: "/landing/images/logo.png", type: "image/png" },
+      { url: "/branding/favicon.ico", sizes: "any" },
+      { url: "/branding/psikosun-icon-32.png", type: "image/png", sizes: "32x32" },
+      { url: "/branding/psikosun-icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/branding/psikosun-icon-512.png", type: "image/png", sizes: "512x512" },
     ],
-    shortcut: "/favicon.svg",
-    apple: "/landing/images/logo.png",
+    shortcut: "/branding/favicon.ico",
+    apple: "/branding/psikosun-icon-180.png",
   },
   openGraph: {
     title: "PSIKOSUN",
@@ -77,7 +79,7 @@ export default function RootLayout({
             browser'a düşer ama page.tsx mount'unda kesin kullanılıyor. */}
         <link
           rel="preload"
-          href="/landing/images/logo.png"
+          href="/branding/psikosun-wordmark-480.png"
           as="image"
           type="image/png"
         />

@@ -61,13 +61,14 @@ export default function LandingPage() {
   };
 
   useEffect(() => {
-    if (!document.getElementById("landing-stylesheet")) {
-      const link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.href = "/landing/prism-flux.css";
-      link.id = "landing-stylesheet";
-      document.head.appendChild(link);
-    }
+    // Style cache-buster — script'le aynı stratejı, asset değişikliklerinin
+    // ziyaretçiye anında yansıması için
+    document.getElementById("landing-stylesheet")?.remove();
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = `/landing/prism-flux.css?v=${Date.now()}`;
+    link.id = "landing-stylesheet";
+    document.head.appendChild(link);
 
     document.getElementById("landing-script")?.remove();
     const script = document.createElement("script");
@@ -107,24 +108,18 @@ export default function LandingPage() {
       {/* Navigation Header */}
       <header className="header" id="header">
         <nav className="nav-container">
-          <a href="#home" className="logo">
-            <div className="logo-icon">
-              <div className="logo-prism">
-                <div className="prism-shape"></div>
-                <img
-                  src="/landing/images/logo.png"
-                  alt="Psikosun Logo"
-                  className="logo-center"
-                  width={48}
-                  height={48}
-                  fetchPriority="high"
-                />
-              </div>
-            </div>
-            <span className="logo-text">
-              <span className="prism">PSIKOSUN</span>
-              <span className="flux"></span>
-            </span>
+          <a href="#home" className="logo logo-brand" aria-label="PSIKOSUN ana sayfa">
+            <img
+              src="/branding/psikosun-wordmark-480.png"
+              srcSet="/branding/psikosun-wordmark-320.png 320w, /branding/psikosun-wordmark-480.png 480w, /branding/psikosun-wordmark-800.png 800w"
+              sizes="(max-width: 480px) 140px, (max-width: 768px) 160px, 200px"
+              alt="PSIKOSUN"
+              className="logo-wordmark"
+              width={200}
+              height={58}
+              fetchPriority="high"
+              decoding="async"
+            />
           </a>
 
           <ul className="nav-menu" id="navMenu">
@@ -618,11 +613,18 @@ export default function LandingPage() {
         <div className="footer-content">
           <div className="footer-brand">
             <div className="footer-logo">
-              <div className="logo-icon">
-                <div className="logo-prism">
-                  <div className="prism-shape"></div>
-                </div>
-              </div>
+              <img
+                src="/branding/psikosun-mark-128.png"
+                srcSet="/branding/psikosun-mark-64.png 64w, /branding/psikosun-mark-128.png 128w, /branding/psikosun-mark-256.png 256w"
+                sizes="56px"
+                alt=""
+                aria-hidden="true"
+                className="footer-mark"
+                width={56}
+                height={56}
+                loading="lazy"
+                decoding="async"
+              />
               <span className="logo-text">
                 <span className="prism">PSIKOSUN</span>
                 <span className="flux"></span>

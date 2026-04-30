@@ -1710,3 +1710,131 @@ video {
   }
 }
 
+/* =========================
+   BRAND ASSETS (2026-04-30)
+   Wordmark = üst nav, Mark = alt menü (footer)
+   Asset'ler kendi içinde cyan + magenta glow taşır; CSS sadece dual-tone
+   ışıma ve prism karakterli hover micro-interaction ekler.
+========================= */
+
+/* WORDMARK — header */
+.logo.logo-brand {
+  /* prism-shape + text combo'yu kaldıran tek wordmark image — kompakt */
+  gap: 0;
+  padding: 0;
+  border-radius: 12px;
+  outline: none;
+  align-items: center;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.logo.logo-brand:focus-visible {
+  outline: 2px solid var(--accent-purple);
+  outline-offset: 4px;
+}
+.logo-wordmark {
+  display: block;
+  height: clamp(34px, 4vw, 46px);
+  width: auto;
+  max-width: 200px;
+  object-fit: contain;
+  /* Image kendi içinde glow taşıdığı için CSS shadow'ı çok hafif tut.
+     Dual-tone — cyan + magenta — markanın prism karakterini yansıtır. */
+  filter:
+    drop-shadow(0 2px 6px rgba(0, 188, 212, 0.18))
+    drop-shadow(0 6px 22px rgba(217, 70, 239, 0.12));
+  transition:
+    filter 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: filter, transform;
+}
+.logo.logo-brand:hover .logo-wordmark {
+  filter:
+    drop-shadow(0 3px 10px rgba(0, 188, 212, 0.32))
+    drop-shadow(0 10px 28px rgba(217, 70, 239, 0.22));
+  transform: translateY(-1px) scale(1.015);
+}
+
+/* MARK — footer */
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+.footer-mark {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  flex-shrink: 0;
+  filter:
+    drop-shadow(0 2px 6px rgba(0, 188, 212, 0.20))
+    drop-shadow(0 8px 24px rgba(217, 70, 239, 0.14));
+  transition:
+    filter 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: filter, transform;
+}
+.footer-brand:hover .footer-mark {
+  filter:
+    drop-shadow(0 3px 10px rgba(0, 188, 212, 0.36))
+    drop-shadow(0 12px 32px rgba(217, 70, 239, 0.26));
+  /* Subtle prism rotation — markanın "prism in motion" DNA'sını korur */
+  transform: rotate(20deg);
+}
+
+/* Marka load animation — sayfa açılışında soft fade-in,
+   landing'in mevcut loader'ı kalktığında mark'ın varlığı hissedilsin */
+@keyframes brandFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+.logo-wordmark,
+.footer-mark {
+  animation: brandFadeIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .logo-wordmark,
+  .footer-mark {
+    animation: none;
+    transition: none;
+  }
+  .logo.logo-brand:hover .logo-wordmark,
+  .footer-brand:hover .footer-mark {
+    transform: none;
+  }
+}
+
+/* Responsive marka boyları */
+@media (max-width: 768px) {
+  .logo-wordmark {
+    height: 40px;
+    max-width: 160px;
+  }
+  .footer-mark {
+    width: 52px;
+    height: 52px;
+  }
+  .footer-logo {
+    gap: 14px;
+    justify-content: center;
+  }
+}
+@media (max-width: 480px) {
+  .logo-wordmark {
+    height: 36px;
+    max-width: 140px;
+  }
+  .footer-mark {
+    width: 48px;
+    height: 48px;
+  }
+}
+
