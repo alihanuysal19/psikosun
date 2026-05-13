@@ -85,10 +85,7 @@ export default function RootLayout({
           as="image"
           type="image/png"
         />
-        {/* preload kaldırıldı — <link rel="stylesheet"> zaten yüksek öncelikle yüklüyor */}
         <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
-        {/* Landing page kritik CSS — SSR'da yüklenmeli ki ilk paint stilsiz olmasın (FOUC fix) */}
-        <link rel="stylesheet" href="/landing/prism-flux.css" />
       </head>
       <body className={`${jakarta.variable} ${grotesk.variable} font-body`}>
         <NextTopLoader />
