@@ -1446,9 +1446,13 @@ body::after {
    MOBILE-FIRST RESPONSIVE OVERRIDE — mobil tarayıcı düzeltmeleri
    ============================================================ */
 
-html,
+/* html'e overflow-x:hidden koymak tüm sayfalarda scroll container'ı kırıyor
+   (CSS statik yüklenince html root scroll engelleniyor). Sadece body'e uygula. */
 body {
-  overflow-x: hidden;
+  overflow-x: clip;
+  -webkit-text-size-adjust: 100%;
+}
+html {
   -webkit-text-size-adjust: 100%;
 }
 
