@@ -473,6 +473,17 @@ body::after {
   position: relative;
   overflow: hidden;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.1);
+  /* iOS Safari: overflow+border-radius child clipping fix */
+  -webkit-mask-image: -webkit-radial-gradient(circle, white 100%, black 100%);
+  isolation: isolate;
+}
+
+/* card-tech badge container — CSS tanımsızdı */
+.card-tech {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: auto;
 }
 
 .carousel-item .card::before {
