@@ -1455,16 +1455,30 @@ video {
 
 @media (max-width: 768px) {
   /* Carousel mobilde: 3D geometriyi kapat, sadece merkezdeki (.is-active) kart gözüksün */
+
+  /* iOS Safari'de overflow:hidden + preserve-3d çalışmıyor;
+     clip-path:inset(0) 3D context içinde de kırpma yapar */
+  .hero {
+    overflow: hidden;
+    -webkit-clip-path: inset(0);
+    clip-path: inset(0);
+  }
+
   .carousel-container {
     height: auto !important;
     min-height: 540px;
     padding-top: 20px !important;
     perspective: none !important;
+    overflow: hidden;
+    /* iOS'ta hardware-accelerated layer — overflow kırpmanın çalışmasını garantiler */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
   }
   .carousel {
     position: relative;
     min-height: 500px;
     transform-style: flat !important;
+    overflow: hidden;
   }
   .carousel-item {
     position: absolute !important;
@@ -1475,12 +1489,15 @@ video {
     left: 50% !important;
     transform: translate(-50%, -50%) !important;
     transition: opacity 0.3s ease !important;
+    /* visibility:hidden kullanmak opacity:0'dan daha güvenli — render edilmez */
     opacity: 0 !important;
+    visibility: hidden !important;
     pointer-events: none !important;
     z-index: 1 !important;
   }
   .carousel-item.is-active {
     opacity: 1 !important;
+    visibility: visible !important;
     pointer-events: auto !important;
     z-index: 10 !important;
   }

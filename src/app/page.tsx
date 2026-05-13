@@ -61,23 +61,15 @@ export default function LandingPage() {
   };
 
   useEffect(() => {
-    // Style cache-buster — script'le aynı stratejı, asset değişikliklerinin
-    // ziyaretçiye anında yansıması için
-    document.getElementById("landing-stylesheet")?.remove();
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = `/landing/prism-flux.css?v=${Date.now()}`;
-    link.id = "landing-stylesheet";
-    document.head.appendChild(link);
-
+    // CSS artık layout.tsx head'inde statik olarak yükleniyor (FOUC fix).
+    // Sadece JS bileşenini dinamik yükle — DOM hazır olduktan sonra çalışması şart.
     document.getElementById("landing-script")?.remove();
     const script = document.createElement("script");
-    script.src = `/landing/prism-scripts.js?v=${Date.now()}`;
+    script.src = "/landing/prism-scripts.js";
     script.id = "landing-script";
     document.body.appendChild(script);
 
     return () => {
-      document.getElementById("landing-stylesheet")?.remove();
       document.getElementById("landing-script")?.remove();
     };
   }, []);
