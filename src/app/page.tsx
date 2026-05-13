@@ -542,7 +542,7 @@ export default function LandingPage() {
               </div>
             </a>
             <a
-              href="https://www.facebook.com/profile.php?id=61578309932880"
+              href="https://www.facebook.com/people/Psikosun-%C3%96%C4%9Frenci-Ko%C3%A7lu%C4%9Fu-PDR/61588719912235/"
               target="_blank"
               rel="noopener noreferrer"
               className="info-item"
@@ -648,7 +648,7 @@ export default function LandingPage() {
                 </svg>
               </a>
               <a
-                href="https://www.facebook.com/profile.php?id=61578309932880"
+                href="https://www.facebook.com/people/Psikosun-%C3%96%C4%9Frenci-Ko%C3%A7lu%C4%9Fu-PDR/61588719912235/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="social-icon"
@@ -717,10 +717,10 @@ export default function LandingPage() {
           <div className="footer-section">
             <h4>Yasal</h4>
             <div className="footer-links">
-              <a href="#kvkk">KVKK Aydınlatma Metni</a>
-              <a href="#gizlilik">Gizlilik &amp; Çerez Politikası</a>
-              <a href="#uyelik">Üyelik Sözleşmesi</a>
-              <a href="#mesafeli">Mesafeli Satış Sözleşmesi</a>
+              <Link href="/kvkk">KVKK Aydınlatma Metni</Link>
+              <Link href="/gizlilik">Gizlilik &amp; Çerez Politikası</Link>
+              <Link href="/uyelik">Üyelik Sözleşmesi</Link>
+              <Link href="/mesafeli">Mesafeli Satış Sözleşmesi</Link>
             </div>
           </div>
         </div>

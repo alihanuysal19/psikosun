@@ -8,6 +8,7 @@ import { CustomizerContextProvider } from "@/app/context/customizerContext";
 import "../utils/i18n";
 import NextTopLoader from "nextjs-toploader";
 import { AuthProvider } from "../app/context/AuthContext";
+import Script from "next/script";
 
 // Marka yazı tipleri — psikosun teması için seçildi:
 //  Gövde: Plus Jakarta Sans (sıcak, profesyonel, yüksek okunabilirlik)
@@ -63,6 +64,7 @@ export const viewport: Viewport = {
   themeColor: "#7C3AED",
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -97,6 +99,16 @@ export default function RootLayout({
             <CustomizerContextProvider>{children}</CustomizerContextProvider>
           </AuthProvider>
         </ThemeProvider>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-B4G9JDWNZP"
+          strategy="afterInteractive"
+        />
+        <Script id="gtag-init" strategy="afterInteractive">{`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-B4G9JDWNZP');
+        `}</Script>
       </body>
     </html>
   );

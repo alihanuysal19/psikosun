@@ -5,7 +5,7 @@ export const SOCIAL_LINKS = [
   {
     key: "facebook",
     label: "Facebook",
-    href: "https://www.facebook.com/profile.php?id=61578309932880",
+    href: "https://www.facebook.com/people/Psikosun-%C3%96%C4%9Frenci-Ko%C3%A7lu%C4%9Fu-PDR/61588719912235/",
     icon: "tabler:brand-facebook",
     color: "#1877F2",
   },

@@ -402,6 +402,34 @@ h1, h2, h3, h4, h5, h6 {
 
 }
 
+/* iOS/Safari genel düzeltmeler */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  /* iOS momentum scrolling */
+  -webkit-overflow-scrolling: touch;
+  /* Overscroll rengi notch alanında görünmesin */
+  overscroll-behavior-y: none;
+}
+
+body {
+  /* Notch/Dynamic Island safe area — yatay padding korunur */
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  /* iOS pull-to-refresh engelle */
+  overscroll-behavior-y: none;
+}
+
+/* iOS 100vh hatası — taşma önleme */
+.h-screen {
+  height: 100dvh;
+}
+.min-h-screen {
+  min-height: 100dvh;
+}
+
 /* Mobil tarayıcı uyum overrides */
 @media (max-width: 640px) {
   /* iOS Safari inputlarda 16px altı font-size zoom yapıyor, engelle */
